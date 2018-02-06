@@ -32,3 +32,15 @@ See the example below:
 ```
 ./project.native -length foo bar baz
 ```
+# Changelog
+All notable changes to this project will be documented in this file.
+
+The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
+and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
+
+## [1.0.0] - 2018-02-05
+### Added
+- A simple CLI program that echos the command-line arguments given to the program back to the user, one argument per line
+- A ```Makefile``` that allows us to (a) build the project with a single command ```make``` and (b) clean the project directory of any compile-time cruft such as compiled programs and object files with ```make clean```
+- A test suite that can be run with ```make test```
+- This README.markdown file
