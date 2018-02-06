@@ -4,9 +4,9 @@ Building a compiler with Ocaml
 These instructions will get you a copy of the project up and running on your local machine for development and testing purposes.  
 ### Prerequisites
 To run this program, you will need:  
-OPAM, the Ocaml package manager  
-The latest version of Ocaml  
-OcamlBuild, a build manager for Ocaml  
+1. OPAM, the Ocaml package manager  
+2. The latest version of Ocaml  
+3. OcamlBuild, a build manager for Ocaml  
 ## Running the program and the tests
 To build the program, you type the following command:  
 ```
