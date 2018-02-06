@@ -7,7 +7,7 @@ To run this program, you will need:
 1. OPAM, the Ocaml package manager  
 2. The latest version of Ocaml  
 3. OcamlBuild, a build manager for Ocaml  
-## Running the program and the tests
+### Running the program and the tests
 To build the program, you type the following command:  
 ```
 make
