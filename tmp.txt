@@ -1,0 +1,27 @@
+foo
+bar
+baz
+3
+3
+3
+3
+3
+3
+foo
+1
+Usage: my-project [flags] [args]
+  -length prints the lengths of each of the arguments
+  -help  Display this list of options
+  --help  Display this list of options
+Usage: my-project [flags] [args]
+  -length prints the lengths of each of the arguments
+  -help  Display this list of options
+  --help  Display this list of options
+Usage: my-project [flags] [args]
+  -length prints the lengths of each of the arguments
+  -help  Display this list of options
+  --help  Display this list of options
+Usage: my-project [flags] [args]
+  -length prints the lengths of each of the arguments
+  -help  Display this list of options
+  --help  Display this list of options
