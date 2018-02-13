@@ -1,4 +1,4 @@
-# MyCompiler by Shuyi Qi
+# OcamlCompiler by Shuyi Qi
 Building a compiler with Ocaml  
 ## Getting Started
 These instructions will get you a copy of the project up and running on your local machine for development and testing purposes.  
@@ -43,4 +43,25 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - A simple CLI program that echos the command-line arguments given to the program back to the user, one argument per line  
 - A ```Makefile``` that allows us to (a) build the project with a single command ```make``` and (b) clean the project directory of any compile-time cruft such as compiled programs and object files with ```make clean```  
 - A test suite that can be run with ```make test```  
-- This README.markdown file  
+- This README.markdown file
+
+## [2.0.0] - 2018-02-12
+### Added
+- A compilation pipeline that supports in our compiler for a small arithmetic language build on S-expressions.  
+- Implementation of the compilation pipeline for numbers, arithmetic operations (addition, subtraction, multiplication, division), booleans, less-than-or-equal comparison, if-then-else statement, floating point literals and the relevant operations over them (including the ```NaN``` - "Not a number" - constant).
+- In short, the core arithmetic language is defined as follows:
+```e ::= n | (+ e1 e2) | (- e1 e2) | (* e1 e2) | (/ e1 e2)
+    | true | false | (<= e1 e2) | (if e1 e2 e3)
+    | f | NaN```
+- Features that need more clarifications:
+  1. In the case of division, ```e2``` should not have integer value ```0```.  
+  2. Boolean constants are ```true``` and ```false```.  
+  3. Less-than-or-equal comparison takes two integer expressions or two float expressions as input and will throw an error if the inputs have a type mismatch.  
+  4. (a) If-then-else takes a boolean expression and two expressions as input.  
+     (b) The semantics of if-then-else is to evaluate ```e1``` to a boolean value. If the boolean value is true, then evaluate ```e2```, otherwise evaluate ```e3```.  
+     (c) e2 and e3 must be of the same type.
+  5. Here a floating-point literal is defined as a number with a decimal point. And there exists at least one decimal to the left and right of the decimal point.
+  6. All arithmetic operations (addition, subtraction, multiplication, division) will produce NaN if at least one of the arguments is a ```NaN```.
+  7. Less-than-or-equal comparison will return ```false``` if at least one of the arguments is a ```NaN```.
+  7. In all above cases of type mismatches, the compiler will give a descriptive statement about the error and exit.  
+
