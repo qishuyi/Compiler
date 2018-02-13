@@ -50,7 +50,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - A compilation pipeline that supports in our compiler for a small arithmetic language build on S-expressions.  
 - Implementation of the compilation pipeline for numbers, arithmetic operations (addition, subtraction, multiplication, division), booleans, less-than-or-equal comparison, if-then-else statement, floating point literals and the relevant operations over them (including the ```NaN``` - "Not a number" - constant).
 - In short, the core arithmetic language is defined as follows:
-```e ::= n | (+ e1 e2) | (- e1 e2) | (* e1 e2) | (/ e1 e2)
+```
+e ::= n | (+ e1 e2) | (- e1 e2) | (* e1 e2) | (/ e1 e2)
     | true | false | (<= e1 e2) | (if e1 e2 e3)
     | f | NaN
 ```  
