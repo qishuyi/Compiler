@@ -52,7 +52,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - In short, the core arithmetic language is defined as follows:
 ```e ::= n | (+ e1 e2) | (- e1 e2) | (* e1 e2) | (/ e1 e2)
     | true | false | (<= e1 e2) | (if e1 e2 e3)
-    | f | NaN```
+    | f | NaN
+```  
 - Features that need more clarifications:
   1. In the case of division, ```e2``` should not have integer value ```0```.  
   2. Boolean constants are ```true``` and ```false```.  
