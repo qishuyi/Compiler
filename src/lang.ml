@@ -14,6 +14,24 @@ type value =
 | VBool of bool
 | VFloat of float
 
+let rec string_of_exp (e:exp) : string =
+  match e with
+  | EInt n                            ->  string_of_int(n)
+  | EAdd(e1, e2)                      ->
+      "(+ " ^ string_of_exp e1 ^ " " ^ string_of_exp e2 ^ ")"
+  | ESubtract(e1, e2)                 ->
+      "(- " ^ string_of_exp e1 ^ " " ^ string_of_exp e2 ^ ")"
+  | EMultiply(e1, e2)                 ->
+      "(* " ^ string_of_exp e1 ^ " " ^ string_of_exp e2 ^ ")"
+  | EDivide(e1, e2)                   ->
+      "(/ " ^ string_of_exp e1 ^ " " ^ string_of_exp e2 ^ ")"
+  | EBool b                           ->  string_of_bool(b)
+  | ELessthanorequal(e1, e2)          ->
+      "(<= " ^ string_of_exp e1 ^ " " ^ string_of_exp e2 ^ ")"
+  | EIf(e1, e2, e3)                   ->
+      "(if " ^ string_of_exp e1 ^ " " ^ string_of_exp e2 ^ " " ^ string_of_exp e2 ^ ")"
+  | EFloat f                          ->  string_of_float(f)
+
 let int_interpret (v:value) : int = 
   match v with
   | VInt n -> n

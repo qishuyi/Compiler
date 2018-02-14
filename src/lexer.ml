@@ -28,7 +28,7 @@ let string_of_token (t:token) : string =
   | TNan -> string_of_float nan
 
 let string_of_token_list (toks:token list) : string =
-  String.concat "," (List.map string_of_token toks)
+  "[" ^ (String.concat ", " (List.map string_of_token toks)) ^ "]"
 
 (* Peeks at the head of the stream without advancing it forward *)
 let peek (src:char Stream.t) : char =
