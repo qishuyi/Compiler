@@ -16,21 +16,21 @@ type value =
 
 let rec string_of_exp (e:exp) : string =
   match e with
-  | EInt n                            ->  string_of_int(n)
+  | EInt n                            ->  string_of_int n
   | EAdd(e1, e2)                      ->
-      "(+ " ^ string_of_exp e1 ^ " " ^ string_of_exp e2 ^ ")"
+      "(" ^ string_of_exp e1 ^ " + " ^ string_of_exp e2 ^ ")"
   | ESubtract(e1, e2)                 ->
-      "(- " ^ string_of_exp e1 ^ " " ^ string_of_exp e2 ^ ")"
+      "(" ^ string_of_exp e1 ^ " - " ^ string_of_exp e2 ^ ")"
   | EMultiply(e1, e2)                 ->
-      "(* " ^ string_of_exp e1 ^ " " ^ string_of_exp e2 ^ ")"
+      "(" ^ string_of_exp e1 ^ " * " ^ string_of_exp e2 ^ ")"
   | EDivide(e1, e2)                   ->
-      "(/ " ^ string_of_exp e1 ^ " " ^ string_of_exp e2 ^ ")"
-  | EBool b                           ->  string_of_bool(b)
+      "(" ^ string_of_exp e1 ^ " / " ^ string_of_exp e2 ^ ")"
+  | EBool b                           ->  string_of_bool b
   | ELessthanorequal(e1, e2)          ->
-      "(<= " ^ string_of_exp e1 ^ " " ^ string_of_exp e2 ^ ")"
+      "(" ^ string_of_exp e1 ^ " <= " ^ string_of_exp e2 ^ ")"
   | EIf(e1, e2, e3)                   ->
-      "(if " ^ string_of_exp e1 ^ " " ^ string_of_exp e2 ^ " " ^ string_of_exp e2 ^ ")"
-  | EFloat f                          ->  string_of_float(f)
+       "(if " ^ string_of_exp e1 ^ " then " ^ string_of_exp e2 ^ " else " ^ string_of_exp e3 ^ ")"
+  | EFloat f                          ->  string_of_float f
 
 let int_interpret (v:value) : int = 
   match v with
@@ -55,9 +55,9 @@ let rec eval (e:exp) : value =
     match eval e1 with 
     | VInt n -> begin
       match eval e2 with
-      | VInt n -> VInt (int_interpret (eval e1) + int_interpret (eval e2))
+      | VInt n   -> VInt (int_interpret (eval e1) + int_interpret (eval e2))
       | VFloat f -> VFloat (float_of_int (int_interpret (eval e1)) +. float_interpret (eval e2))
-      | VBool b -> failwith "Cannot perform arithmetic operations on boolean expressions" end
+      | VBool b ->  failwith "Cannot perform arithmetic operations on boolean expressions" end
     | VFloat f -> begin
       match eval e2 with
       | VInt n -> VFloat (float_interpret (eval e1) +. float_of_int (int_interpret (eval e2)))
@@ -118,7 +118,7 @@ let rec eval (e:exp) : value =
          match eval e2 with
          | VInt n -> VBool (int_interpret (eval e1) <= int_interpret (eval e2))
          | VFloat f -> VBool (float_of_int (int_interpret (eval e1)) <= float_interpret (eval e2))
-         | VBool b -> failwith "Cannot perform arithmetic operations on boolean expressions" end
+         | VBool b -> failwith  "Cannot perform arithmetic operations on boolean expressions" end
       |VFloat f -> begin
         match eval e2 with
         | VInt n -> VBool (float_interpret (eval e1) <= float_of_int (int_interpret (eval e2)))
