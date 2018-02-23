@@ -67,3 +67,12 @@ e ::= n | (+ e1 e2) | (- e1 e2) | (* e1 e2) | (/ e1 e2)
   7. Less-than-or-equal comparison will return ```false``` if at least one of the arguments is a ```NaN```.
   7. In all above cases of type mismatches, the compiler will give a descriptive statement about the error and exit.  
 
+## [3.0.0] - 2018-02-22
+### Changed
+- Changed the handwritten lexer and parser on branch ```assignment-02``` to using the Ocaml lexer and parser: Ocamllex and Menhir  
+  The manuals that I used are: 
+  - [Ocamllex](https://courses.softlab.ntua.gr/compilers/2015a/ocamllex-tutorial.pdf)  
+  - [Menhir](http://gallium.inria.fr/~fpottier/menhir/manual.pdf)  
+### Added
+- Added test cases to the hand-rolled lexer and parser on branch ```assignment-02```. The test cases work as follows
+  1. Added a pair of flags ```-lex``` and ```-parse``` to the compiler. When given the ```-lex``` flag, it prints out the resulting stream of tokens to the console, and the exit.  
