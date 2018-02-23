@@ -1,10 +1,13 @@
 OCBFLAGS :=
 OCB := ocamlbuild $(OCBFLAGS)
 
-.PHONY: all debug clean top
+.PHONY: all test debug clean top
 
 all: compiler.native
 debug: all compiler.cma
+
+test:
+	./test/test.sh
 
 %.cma: .FORCE
 	$(OCB) $@
