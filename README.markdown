@@ -87,3 +87,27 @@ so that the operators take on the more familiar infix style
 
 ## [3.0.1] - 2018-02-22
 ### Added
+- Line-column information to the error messages.  
+  Consider the code below:  
+  ```
+  if
+	3 <= 5
+  then
+	3 + 5
+  else
+	true
+  ```
+  Our lexical stream used to look as follows:
+  ```
+  ['if',3,<=,5,'then',3,+,5,'else',true]
+  ```
+  Now it will look as follows:
+  ```
+  ['if' (1 : 1),3 (2 : 6),<= (2 : 8),5 (2 : 11),'then' (3 : 1),3 (4 : 6),+ (4 : 8),5 (4 : 10),'else' (5 : 1),true (6 : 6)]
+  ```
+  With this information, when we encounter an error during interpretation, our error message will contain the column-line information of where exactly in the file the error occurs. The error message for the above code is as follows:
+  ```
+  Fatal error: exception Failure(" (4 : 6)The syntax 'if a1 then a2 else a3' requires a2 and a3 to be of the same type")
+  ```
+### Changed
+- Updated test cases so that the stream of tokens produced by the lexer will include line-column information.  
