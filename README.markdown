@@ -6,14 +6,16 @@ These instructions will get you a copy of the project up and running on your loc
 To run this program, you will need:  
 1. OPAM, the Ocaml package manager  
 2. The latest version of Ocaml  
-3. OcamlBuild, a build manager for Ocaml  
+3. OcamlBuild, a build manager for Ocaml
+4. Menhir, the ocaml parser  
 ### Running the program and the tests
 To build the program, you type the following command:  
 ```
 make
 ```  
 For this particular CLI program, it accepts three flags:  
-```-length``` : if this flag is present in the command-line argument list, then instead of printing the arguments, one per line, you print the length of the arguments, one per line.  
+```-lex``` : if this flag is present, the program will print to the console the stream of tokens along with their positions in the input file, and exit.
+```-parse``` : if this flag is present, the program will print to the console the resulting abstract syntax tree (AST), and exit.
 ```-help``` or ```--help``` :  if this flag is present in the command-line argument list, then instead of printing the arguments, the program prints a help message explaining the supported command-line flags and then exits.  
 If no flags are present, the program echos the command-line arguments given to the program back to the user, one argument per line.  
 
@@ -25,12 +27,12 @@ To run the test suite, execute the following command:
 ```
 make test
 ```  
-The bash script ```test.sh``` encodes the process of running the program, directing the program's output to the file ```tmp.txt```, and comparing ```tmp.txt``` with ```test.out``` using the ```diff```program, while ```test.out``` contains the predetermined output of the program.
+The bash script ```test.sh``` encodes the process of running the program, directing the program's output to the  ```.test``` files , and comparing the ```.txt``` files with the ```.out``` files using the ```diff``` program, while ```.out``` files contain the predetermined output of the program.
   
-You can run the program with ```./project.native -length foo bar baz```  
+To run the program, use a command in to following format: ```./compiler.native [filename] [-flag]```  
 See the example below:  
 ```
-./project.native -length foo bar baz
+./compiler.native ./test/test1.src -lex
 ```  
 # Changelog  
 All notable changes to this project will be documented in this file.  
@@ -70,9 +72,18 @@ e ::= n | (+ e1 e2) | (- e1 e2) | (* e1 e2) | (/ e1 e2)
 ## [3.0.0] - 2018-02-22
 ### Changed
 - Changed the handwritten lexer and parser on branch ```assignment-02``` to using the Ocaml lexer and parser: Ocamllex and Menhir  
-  The manuals that I used are: 
-  - [Ocamllex](https://courses.softlab.ntua.gr/compilers/2015a/ocamllex-tutorial.pdf)  
-  - [Menhir](http://gallium.inria.fr/~fpottier/menhir/manual.pdf)  
+  The manuals that I used are: [Ocamllex](https://courses.softlab.ntua.gr/compilers/2015a/ocamllex-tutorial.pdf) and [Menhir](http://gallium.inria.fr/~fpottier/menhir/manual.pdf)  
+- Changed the core language to the following syntax:
+```
+e ::= n | (e) | e1 + e1 | e1 - e2 | e1 * e2 | e1 / e2
+    | true | false | e1 <= e2 | if e1 then e2 else e3
+```  
+so that the operators take on the more familiar infix style  
+### Added  
+- Added test cases to the hand-rolled lexer and parser on branch ```assignment-02```. The test cases work as follows  
+  Added a pair of flags ```-lex``` and ```-parse``` to the compiler.  
+  When given the ```-lex``` flag, it prints out the resulting stream of tokens to the console, and the exit.  
+  When given the ```-parse``` flag, it prints the resulting abstract syntax tree, and then exit.
+
+## [3.0.1] - 2018-02-22
 ### Added
-- Added test cases to the hand-rolled lexer and parser on branch ```assignment-02```. The test cases work as follows
-  1. Added a pair of flags ```-lex``` and ```-parse``` to the compiler. When given the ```-lex``` flag, it prints out the resulting stream of tokens to the console, and the exit.  
