@@ -1,1 +1,7 @@
-if 2 <= 0 then 9 * 8 - 16 else 0 * 0 - 8)
+3 +
+(if
+    3 <=0
+ then
+    true
+ else
+    false)
