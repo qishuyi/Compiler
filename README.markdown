@@ -124,25 +124,25 @@ e ::= n | b | e1 (+) e2 | if e1 then e2 else e3
 ### Changed
 - Changed from big-step semantics to small-step semantics. Now specifying the flag ```-step``` in the command when running the program, the program will print out small-step evaluation for the given expression. 
 - For instance, the following expression
-```
-let max2 =
+  ```
+  let max2 =
       fun x -> fun y -> if x > y then x else y
     in
     let a = 5 in
     let b = 2 in
     (max2 a) b
-```
-will be evaluated step-by-step to the following:
-```
-(let max2 = (fun x -> (fun y -> (if (> x y) x y))) in (let a = 5 in (let b = 2 in ((max2 a) b))))
-(let a = 5 in (let b = 2 in (((fun x -> (fun y -> (if (> x y) x y))) a) b)))
-(let b = 2 in (((fun x -> (fun y -> (if (> x y) x y))) 5) b))
-(((fun x -> (fun y -> (if (> x y) x y))) 5) 2)
-((fun x -> (fun y -> (if (> x y) x y))) 5)
-(fun y -> (if (> 5 y) 5 y))
-((fun y -> (if (> 5 y) 5 y)) 2)
-(if (> 5 2) 5 2)
-(if true 5 2)
-5
-5
-```
+  ```
+  will be evaluated step-by-step to the following:
+  ```
+  (let max2 = (fun x -> (fun y -> (if (> x y) x y))) in (let a = 5 in (let b = 2 in ((max2 a) b))))
+  (let a = 5 in (let b = 2 in (((fun x -> (fun y -> (if (> x y) x y))) a) b)))
+  (let b = 2 in (((fun x -> (fun y -> (if (> x y) x y))) 5) b))
+  (((fun x -> (fun y -> (if (> x y) x y))) 5) 2)
+  ((fun x -> (fun y -> (if (> x y) x y))) 5)
+  (fun y -> (if (> 5 y) 5 y))
+  ((fun y -> (if (> 5 y) 5 y)) 2)
+  (if (> 5 2) 5 2)
+  (if true 5 2)
+  5
+  5
+  ```
