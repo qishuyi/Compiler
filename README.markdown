@@ -116,11 +116,11 @@ so that the operators take on the more familiar infix style
 ## [4.0.1] - 2018-03-07
 ### Added
 - Added both let-binds, functions and recursions to the language along with variables. The syntax now looks like the following:  
-```
-e ::= n | b | e1 (+) e2 | if e1 then e2 else e3
-    | x | let x = e1 in e2 | fun x -> e | e1 e2
-    | fix f x -> e
-```
+  ```
+  e ::= n | b | e1 (+) e2 | if e1 then e2 else e3
+      | x | let x = e1 in e2 | fun x -> e | e1 e2
+      | fix f x -> e
+  ```
 ### Changed
 - Changed from big-step semantics to small-step semantics. Now specifying the flag ```-step``` in the command when running the program, the program will print out small-step evaluation for the given expression. 
 - For instance, the following expression
