@@ -1,17 +1,17 @@
 #!/bin/bash
 
-file1=./test/test1.src
-file2=./test/test1.lex.out
-file3=./test/test1.parse.out
-emptyfile=./test/test2.src
-file4=./test/test2.lex.out
-file5=./test/test2.parse.out
-extratoken=./test/test3.src
-file6=./test/test3.lex.out
-file7=./test/test3.parse.out
-temp1=./test/temp1.test
-temp2=./test/temp2.test
-temp3=./test/temp3.test
+file1=./test/test_basic_ops/test1.src
+file2=./test/test_basic_ops/test1.lex.out
+file3=./test/test_basic_ops/test1.parse.out
+emptyfile=./test/test_basic_ops/test2.src
+file4=./test/test_basic_ops/test2.lex.out
+file5=./test/test_basic_ops/test2.parse.out
+extratoken=./test/test_basic_ops/test3.src
+file6=./test/test_basic_ops/test3.lex.out
+file7=./test/test_basic_ops/test3.parse.out
+temp1=./test/test_basic_ops/temp1.test
+temp2=./test/test_basic_ops/temp2.test
+temp3=./test/test_basic_ops/temp3.test
 
 ./compiler.native $file1 -lex > $temp1
 diff --brief <(sort $temp1) <(sort $file2) >/dev/null

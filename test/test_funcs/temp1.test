@@ -1,0 +1,11 @@
+(let max2 = (fun x -> (fun y -> (if (> x y) x y))) in (let a = 5 in (let b = 2 in ((max2 a) b))))
+(let a = 5 in (let b = 2 in (((fun x -> (fun y -> (if (> x y) x y))) a) b)))
+(let b = 2 in (((fun x -> (fun y -> (if (> x y) x y))) 5) b))
+(((fun x -> (fun y -> (if (> x y) x y))) 5) 2)
+((fun x -> (fun y -> (if (> x y) x y))) 5)
+(fun y -> (if (> 5 y) 5 y))
+((fun y -> (if (> 5 y) 5 y)) 2)
+(if (> 5 2) 5 2)
+(if true 5 2)
+5
+5
