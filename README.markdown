@@ -139,9 +139,7 @@ so that the operators take on the more familiar infix style
   (let b = 2 in (((fun x -> (fun y -> (if (> x y) x y))) 5) b))
   (((fun x -> (fun y -> (if (> x y) x y))) 5) 2)
   ((fun x -> (fun y -> (if (> x y) x y))) 5)
-  (fun y -> (if (> 5 y) 5 y))
   ((fun y -> (if (> 5 y) 5 y)) 2)
-  (if (> 5 2) 5 2)
   (if true 5 2)
   5
   5
