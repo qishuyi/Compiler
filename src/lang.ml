@@ -201,7 +201,7 @@ let rec step (e:exp) (b:bool) : expression = begin
     else if not (is_value e1.value) then EApply ({value=step e1 b;pos=e1.pos}, e2)
     else
     match e1.value with
-    | EFun(s, e') -> step (substitute e2 s.value e') b
+    | EFun(s, e') -> step (substitute e2 s.value e') false
     | EFix(f, x, e') -> step (substitute e1 f.value (substitute e2 x.value e')) b
     | _ -> let error_msg = (locate e1.pos) ^ "This is not a function; it cannot be applied." in failwith error_msg end
 
