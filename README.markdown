@@ -111,4 +111,38 @@ so that the operators take on the more familiar infix style
   requires a2 and a3 to be of the same type")
   ```
 ### Changed
-- Updated test cases so that the stream of tokens produced by the lexer will include line-column information.  
+- Updated test cases so that the stream of tokens produced by the lexer will include line-column information.
+
+## [4.0.1] - 2018-03-07
+### Added
+- Added both let-binds, functions and recursions to the language along with variables. The syntax now looks like the following:  
+```
+e ::= n | b | e1 (+) e2 | if e1 then e2 else e3
+    | x | let x = e1 in e2 | fun x -> e | e1 e2
+    | fix f x -> e
+```
+### Changed
+- Changed from big-step semantics to small-step semantics. Now specifying the flag ```-step``` in the command when running the program, the program will print out small-step evaluation for the given expression. 
+- For instance, the following expression
+```
+let max2 =
+      fun x -> fun y -> if x > y then x else y
+    in
+    let a = 5 in
+    let b = 2 in
+    (max2 a) b
+```
+will be evaluated step-by-step to the following:
+```
+(let max2 = (fun x -> (fun y -> (if (> x y) x y))) in (let a = 5 in (let b = 2 in ((max2 a) b))))
+(let a = 5 in (let b = 2 in (((fun x -> (fun y -> (if (> x y) x y))) a) b)))
+(let b = 2 in (((fun x -> (fun y -> (if (> x y) x y))) 5) b))
+(((fun x -> (fun y -> (if (> x y) x y))) 5) 2)
+((fun x -> (fun y -> (if (> x y) x y))) 5)
+(fun y -> (if (> 5 y) 5 y))
+((fun y -> (if (> 5 y) 5 y)) 2)
+(if (> 5 2) 5 2)
+(if true 5 2)
+5
+5
+```
