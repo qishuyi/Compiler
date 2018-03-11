@@ -144,3 +144,39 @@ so that the operators take on the more familiar infix style
   5
   5
   ```
+## [5.0.1] - 2018-03-11
+### Changes
+- Improved the small-step semantics so that more specific steps are shown during evaluation.  
+### Added
+- Introduced a typechecking phase to the compiler, thereby converting it to target a * statically-typed programming language * where typechecking is performed during the compilation phase rather than when the program runs. This removes the cost of runtime checks as well as allow the developer to catch bugs in their program earlier in the development process.  
+- The syntax is extended to as follows:
+  ```
+  e ::= n | b | e1 (+) e2 | if e1 then e2 else e3
+    | x | let x : t = e1 in e2
+    | e1 e2 | fun (x:t1) : t2 -> e | fix f (x:t1) : t2 -> e
+
+  t ::= int | bool | t1 -> t2
+  ```
+  In the above language, we’ve added an additional syntactic form for types (denoted by the metavariable t) as well as full type annotations for lets and functions so we know the type of bound variables. With this language, we introduced a typechecking phase to the compiler that runs before evaluation and ensures that the program is well-formed before compile time.  
+- Added type ```unit``` to the language, specifically added the following extension to the language:
+  ```
+  e ::= () | ...
+  t ::= unit | ...
+  ```
+  By introducing the ```unit``` type, we are thus able to specify a * Don't care * value.  
+- Added ** pairs ** to the language. A pair data structure allows us to group together two related values. We create a pair by calling ```(e1, e2)```, extract the first value using ```fst``` and the second value using ```snd```. The two elements of a pair structure does not need to be of the same type.
+  The following extension is added to the syntax:  
+  ```
+  e ::= (e1, e2) | fst e | snd e | ...
+  t ::= t1 * t2 | ...
+  ```
+- Added ** lists ** to the language. A list data structure is either an empty list ```[] : t``` (t specifies the type of the empty list so that we don't need to worry about infer it later) or a series of cons: ```e1 :: e2``` puts a single value ```e1``` onto the head of a list ```e2```.
+  The extensions added to the syntax are as follows:
+  ```
+  e ::= [] : t | e1 :: e2 | hd e | tl e | empty e
+  t ::= [t]
+  ```
+  Our list implementation supports three functions:
+  1. ```hd e``` returns the head element of the list ```e```.
+  2. ```tl e``` returns the list resulting from stripping the head element off list e.
+  3. ```empty e``` returns ```true``` iff the list ```e``` is the empty list and ```false``` if it is not empty.  
