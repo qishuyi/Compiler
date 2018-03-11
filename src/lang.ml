@@ -16,6 +16,8 @@ type t =
 | TFloat
 | TBool 
 | TFun of t * t
+| TUnit
+| TPair of t * t
 
 (* Turns a type into string *)
 let rec string_of_type (typ:t) : string =
@@ -24,6 +26,8 @@ match typ with
 | TFloat -> "float"
 | TBool -> "boolean"
 | TFun(t1, t2) -> (string_of_type t1) ^  " -> " ^ (string_of_type t2)
+| TUnit -> "unit"
+| TPair(t1, t2) -> (string_of_type t1) ^ " * " ^ (string_of_type t2)
 
 type variable = symbol_token
 
@@ -52,6 +56,10 @@ type expression =
 | EFun of fun_ctx * exp
 | EFix of variable * fun_ctx * exp
 | EApply of exp * exp
+| EUnit
+| EPair of exp * exp
+| EFst of exp
+| ESnd of exp
 and exp = { value : expression ; pos : Lexing.position }
 
 (* Turn the AST into string *)
@@ -72,6 +80,10 @@ match e with
 | EFun (x, e')                      ->  "(fun " ^ x.v.v.value ^ " -> " ^ string_of_exp e'.value ^ ")"
   | EFix (f, x, e')                   ->  "(fix " ^ f.value ^ " " ^ x.v.v.value ^ " -> " ^ string_of_exp e'.value ^ ")"
 | EApply (e1, e2)                   ->  "(" ^ string_of_exp e1.value ^ " " ^ string_of_exp e2.value ^ ")"
+  | EUnit                             -> "()"
+| EPair (e1, e2)                    -> "(" ^ string_of_exp e1.value ^ ", " ^ string_of_exp e2.value ^ ")"
+  | EFst e                            -> "(fst " ^ string_of_exp e.value ^ ")"
+| ESnd e                            -> "(snd " ^ string_of_exp e.value ^ ")"
 
 
 (* If variable exists in a function, substitute it with the given value; 
@@ -92,6 +104,10 @@ let substitute (v:exp) (variable:string) (e:exp) : exp =
    | EFun(s, e')                 -> {value=EFun(s, subst e');pos=e.pos}
    | EFix(f, x, e')              -> {value=EFix(f, x, subst e');pos=e.pos}
    | EApply(e1, e2)              -> {value=EApply(subst e1, subst e2);pos=e.pos}
+   | EUnit                       -> {value=EUnit;pos=e.pos}
+   | EPair(e1, e2)               -> {value=EPair(subst e1, subst e2); pos=e.pos}
+   | EFst e                      -> {value=EFst (subst e); pos=e.pos}
+   | ESnd e                      -> {value=ESnd (subst e); pos=e.pos}
    in
    subst e
 
@@ -102,43 +118,48 @@ type value =
 | VBool of bool
 | VFun of string * expression
 | VFix of string * string * expression
+| VUnit
+| VPair of value * value
 
 (* Checks if an expression is a value or not *)
-let is_value (e:expression) : bool =
+let rec is_value (e:expression) : bool =
 match e with
 | EInt n -> true
 | EFloat f -> true
 | EBool b -> true
 | EFun (s, e') -> true
 | EFix (f, x, e') -> true
+| EUnit -> true
+| EPair(e1, e2) -> if (is_value e1.value)&&(is_value e2.value) then true else false
 | _     -> false
 
 (* Turn the given expression into a value *)
-let exp_to_value (e:expression) : value =
+let rec exp_to_value (e:expression) : value =
 match e with
 | EInt n -> VInt n.value
 | EFloat f -> VFloat f.value
 | EBool b -> VBool b.value
 | EFun (s, e') -> VFun (s.v.v.value, e'.value)
 | EFix (f, x, e') -> VFix (f.value, x.v.v.value, e'.value)
+| EUnit -> VUnit
+| EPair(e1, e2) -> VPair ((exp_to_value e1.value), (exp_to_value e2.value))
 | _  -> failwith "Invalid expression; it cannot be evaluated to a value"
 
 (* Take in a value and returns the corresponding string. 
    This function will be used for the purpose of debugging and printing results. *)
-let string_of_value (v:value) : string =
+let rec string_of_value (v:value) : string =
 match v with
 | VInt n -> string_of_int n
 | VFloat f -> string_of_float f
 | VBool b -> string_of_bool b
 | VFun (s, e') -> "fun " ^ s ^ " -> " ^ (string_of_exp e')
-| VFix (f, x, e') -> "fix " ^ f ^ " " ^ x ^ " -> " ^ (string_of_exp e') 
+| VFix (f, x, e') -> "fix " ^ f ^ " " ^ x ^ " -> " ^ (string_of_exp e')
+| VUnit -> "()"
+| VPair(v1, v2) -> "(" ^ (string_of_value v1) ^ ", " ^ (string_of_value v2) ^ ")"
 
 (* Write a position as string *)
 let locate (p:Lexing.position) : string = 
 " (" ^ (string_of_int p.pos_lnum) ^ " : " ^ (string_of_int (p.pos_cnum - p.pos_bol + 1)) ^ ")"
-
-let print_v (v:variable) : unit =
-print_endline v.value
 
 (* Performs typechecking under the given context on the given expression.
    Returns the type of the expression. *)
@@ -149,27 +170,38 @@ let rec typecheck (c:(string * t) list) (e:exp) : t =
     | TInt     -> begin match typ2 with
                   | TInt     -> TInt
                   | TFloat   -> TFloat
-                  | TBool | TFun _ -> let error_msg = (locate e2.pos) ^ "Expected type: int or float, given type: " ^ (string_of_type typ2) in failwith error_msg end
+                  | _        -> let error_msg = (locate e2.pos) ^ "Expected type: int or float, given type: " ^ (string_of_type typ2) in failwith error_msg end
     | TFloat   -> begin match typ2 with
-                  | TInt | TFloat -> TFloat
-                  | TBool | TFun _ -> let error_msg = (locate e2.pos) ^ "Expected type: int or float, given type: " ^ (string_of_type typ2) in failwith error_msg end
-    | TBool | TFun _ -> let error_msg = (locate e1.pos) ^ "Expected type: int or float, given type: " ^ (string_of_type typ1) in failwith error_msg end
+                  | TInt          -> TFloat
+                  | TFloat        -> TFloat
+                  | _             -> let error_msg = (locate e2.pos) ^ "Expected type: int or float, given type: " ^ (string_of_type typ2) in failwith error_msg end
+    | _        -> let error_msg = (locate e1.pos) ^ "Expected type: int or float, given type: " ^ (string_of_type typ1) in failwith error_msg end
   in
   let compare_typecheck (e1:exp) (e2:exp) : t =
     let typ1 = (typecheck c e1) in let typ2 = (typecheck c e2) in begin
       match typ1 with
       | TInt       -> begin match typ2 with
                       | TInt -> TBool
-                      | _ -> let error_msg = (locate e2.pos) ^ "Expected type: int or float, given type: " ^ (string_of_type typ2) in failwith error_msg end
+                      | _ -> let error_msg = (locate e2.pos) ^ "Expected type: int, given type: " ^ (string_of_type typ2) in failwith error_msg end
       | TFloat     -> begin match typ2 with
                       | TFloat -> TBool
-                      | _      -> let error_msg = (locate e2.pos) ^ "Expected type: int or float, given type: " ^ (string_of_type typ2) in failwith error_msg end
+                      | _      -> let error_msg = (locate e2.pos) ^ "Expected type: float, given type: " ^ (string_of_type typ2) in failwith error_msg end
       | _          -> let error_msg = (locate e2.pos) ^ "Expected type: int or float, given type: " ^ (string_of_type typ2) in failwith error_msg end
   in
   match e.value with
   | EInt n                   -> TInt
   | EFloat f                 -> TFloat
   | EBool b                  -> TBool
+  | EUnit                    -> TUnit
+  | EPair(e1, e2)            -> let typ1 = typecheck c e1 in let typ2 = typecheck c e2 in TPair(typ1, typ2)
+  | EFst e                   -> let typ = typecheck c e in begin
+                                match typ with
+                                | TPair(t1, t2) -> t1
+                                | _             -> let error_msg = (locate e.pos) ^ "Expected of type: pair, given type: " ^ (string_of_type typ) in failwith error_msg end
+  | ESnd e                   -> let typ = typecheck c e in begin
+                                match typ with
+                                | TPair(t1, t2) -> t2
+                                | _             -> let error_msg = (locate e.pos) ^ "Expected of type: pair, given type: " ^ (string_of_type typ) in failwith error_msg end
   | EVar x                   -> if (mem_assoc x.value c) then (List.assoc x.value c) else let error_msg = (locate e.pos) ^ "Unknown variable: " ^ x.value in failwith error_msg
   (* Arithmetic operations on integers *)
   | EAdd(e1, e2)             -> arith_typecheck e1 e2
@@ -194,7 +226,7 @@ let rec typecheck (c:(string * t) list) (e:exp) : t =
   | EFix(f, x, e)            -> let typ_in = x.v.typ in let typ_ou = x.typ in TFun(typ_in, typ_ou)
   | EApply(e1, e2)           -> let typ1 = (typecheck c e1) in
                              match typ1 with
-                             | TInt | TFloat | TBool -> print_endline ((string_of_exp e1.value) ^ " " ^ (string_of_type typ1)) ; let error_msg = (locate e1.pos) ^ "This is not a function, it cannot be applied." in failwith error_msg
+                             | TInt | TFloat | TBool | TUnit | TPair _ -> print_endline ((string_of_exp e1.value) ^ " " ^ (string_of_type typ1)) ; let error_msg = (locate e1.pos) ^ "This is not a function, it cannot be applied." in failwith error_msg
                              | TFun(t1, t2)          -> begin
                              let typ2 = (typecheck c e2) in
                              if typ2 = t1 then t2 else let error_msg = (locate e2.pos) ^ "Expected of type: " ^ (string_of_type t1) ^ ", given type: " ^ (string_of_type typ2) in failwith error_msg end
@@ -248,6 +280,21 @@ let rec step (e:exp) (b:bool) : expression =
    | EInt n                                      -> EInt n
    | EFloat f                                    -> EFloat f
    | EVar x                                      -> let error_msg = (locate e.pos) ^ "Unbound value: " ^ x.value in failwith error_msg
+   | EUnit                                       -> EUnit
+   | EPair(e1, e2)                               ->
+     if not (is_value e1.value) then EPair({value=(step e1 false); pos=e1.pos}, e2)
+     else if not (is_value e2.value) then EPair(e1, {value=(step e2 false); pos=e2.pos})
+     else EPair(e1, e2)
+   | EFst e                                      ->
+     if not (is_value e.value) then EFst {value=(step e false); pos=e.pos} else begin
+     match e.value with
+     | EPair(e1, e2) -> e1.value
+     | _             -> let error_msg = (locate e.pos) ^ "fst can only operate on pair expressions" in failwith error_msg end
+   | ESnd e                                      ->
+     if not (is_value e.value) then ESnd {value=(step e false); pos=e.pos} else begin
+     match e.value with
+     | EPair(e1, e2) -> e2.value
+     | _             -> let error_msg = (locate e.pos) ^ "snd can only operate on pair expressions" in failwith error_msg end
    | EAdd (e1, e2)                               ->
    if not (is_value e1.value) then EAdd({value=(step e1 false); pos=e1.pos}, e2)
 						   else if not (is_value e2.value) then EAdd(e1, {value=(step e2 false);pos=e2.pos})
@@ -290,7 +337,6 @@ let rec step (e:exp) (b:bool) : expression =
     | EFun(s, e') -> step (substitute e2 s.v.v.value e') b
     | EFix(f, x, e') -> step (substitute e1 f.value (substitute e2 x.v.v.value e')) b
     | _ -> let error_msg = (locate e1.pos) ^ "This is not a function; it cannot be applied." in failwith error_msg end
-    
 
     (* The evaluation function that calls step *)
     let eval (e:exp) (b:bool) : value =

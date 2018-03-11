@@ -1,0 +1,8 @@
+(fst ((snd ((+ 1 2), (<= 8 9))), (fst ((> 2. 1.9), (/ 9 3)))))
+(fst ((snd (3, (<= 8 9))), (fst ((> 2. 1.9), (/ 9 3)))))
+(fst ((snd (3, true)), (fst ((> 2. 1.9), (/ 9 3)))))
+(fst (true, (fst ((> 2. 1.9), (/ 9 3)))))
+(fst (true, (fst (true, (/ 9 3)))))
+(fst (true, (fst (true, 3))))
+(fst (true, true))
+true

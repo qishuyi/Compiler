@@ -17,6 +17,7 @@ open Lang
 %token <Lang.symbol_token> TINT			(* int *)
 %token <Lang.symbol_token> TFLOAT		(* float *)
 %token <Lang.symbol_token> TBOOL		(* bool *)
+%token <Lang.symbol_token> TUNIT		(* unit *)
 
 %token <Lang.symbol_token> SMALLEREQUAL		(* <= *)
 %token <Lang.symbol_token> GREATER		(* > *)
@@ -30,6 +31,10 @@ open Lang
 %token <Lang.symbol_token> OUTPUT		(* -> *)
 %token <Lang.symbol_token> FIX			(* fix *)
 %token <Lang.symbol_token> COLON		(* : *)
+
+%token <Lang.symbol_token> COMMA		(* , *)
+%token <Lang.symbol_token> FST			(* fst *)
+%token <Lang.symbol_token> SND			(* snd *)
 
 %token EOF
 
@@ -47,6 +52,8 @@ prog:
   | EOF	  			    	    { failwith "Empty file" }
 
 exp:
+| t=LPAREN RPAREN
+  { {value=EUnit; pos=t.pos} }
 | LPAREN e=exp RPAREN	            
   { e }
 | n=INT				    
@@ -79,10 +86,18 @@ exp:
   { {value=ELet({v=x; typ=t}, e2, e3); pos=s.pos} }
 | e1=exp e2=exp
   { {value=EApply(e1, e2); pos=e1.pos} }
+| t=LPAREN e1=exp COMMA e2=exp RPAREN
+  { {value=EPair(e1, e2); pos=t.pos} }
+| t=FST e=exp
+  { {value=EFst e; pos=t.pos} }
+| t=SND e=exp
+  { {value=ESnd e; pos=t.pos} }
+
 
 types:
 | LPAREN t=types RPAREN				 { t }
 | TINT						 { TInt }
 | TFLOAT			  		 { TFloat }
 | TBOOL		  	   	  		 { TBool }
+| TUNIT						 { TUnit }
 | t1=types OUTPUT t2=types	  		 { TFun(t1, t2) }

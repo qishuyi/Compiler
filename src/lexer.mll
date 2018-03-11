@@ -32,6 +32,10 @@ match tok with
 | TINT	s	   	-> 	"int" ^ (locate s.pos)
 | TFLOAT s	   	-> 	"float" ^ (locate s.pos)
 | TBOOL s	   	-> 	"bool" ^ (locate s.pos)
+| TUNIT s		->	"unit" ^ (locate s.pos)
+| COMMA s		->	"," ^ (locate s.pos)
+| FST s			->	"fst" ^ (locate s.pos)
+| SND s			-> 	"snd" ^ (locate s.pos)
 | EOF 		   	-> 	""
 
 let string_of_token_list (toks:Parser.token list) : string =
@@ -76,6 +80,10 @@ rule token = parse
 | "int"			    { TINT	   ({value="int" ; pos=lexbuf.Lexing.lex_start_p})}
 | "float"		    { TFLOAT	   ({value="float" ; pos=lexbuf.Lexing.lex_start_p})}
 | "bool"		    { TBOOL	   ({value="bool" ; pos=lexbuf.Lexing.lex_start_p})}
+| "unit"		    { TUNIT	   ({value="unit" ; pos=lexbuf.Lexing.lex_start_p})}
 | ":"			    { COLON	   ({value=":" ; pos=lexbuf.Lexing.lex_start_p})}
+| ","			    { COMMA	   ({value=","; pos=lexbuf.Lexing.lex_start_p})}
+| "fst"			    { FST	   ({value="fst"; pos=lexbuf.Lexing.lex_start_p})}
+| "snd"			    { SND	   ({value="snd"; pos=lexbuf.Lexing.lex_start_p})}
 | variable+		    { VAR  	   ({value=create_variable lexbuf ; pos=lexbuf.Lexing.lex_start_p})}
 | _ as c 		    { raise @@ Lexer_error("Unexpected character " ^ Char.escaped c) }
