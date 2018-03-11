@@ -7,8 +7,7 @@ all: compiler.native
 debug: all compiler.cma
 
 test:
-	./test/test_basic_ops/test.sh
-	./test/test_funcs/test.sh
+	./test/test_typecheck/test.sh
 
 %.cma: .FORCE
 	$(OCB) $@

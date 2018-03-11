@@ -30,6 +30,6 @@ let main () =
   else
   let exp = Parser.prog Lexer.token lexbuf
   in if is_parse = ref true then Lang.string_of_exp exp.value |> print_endline
-  else Lang.eval exp !is_step |> ignore
+  else Lang.typecheck [] exp |> ignore; Lang.eval exp !is_step |> ignore
   
 let _ = if !Sys.interactive then () else main ()
