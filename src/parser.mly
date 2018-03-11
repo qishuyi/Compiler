@@ -11,7 +11,7 @@ open Lang
 %token <Lang.symbol_token> RPAREN		(* ) *)
 %token <Lang.symbol_token> PLUS			(* + *)
 %token <Lang.symbol_token> MINUS		(* - *)
-%token <Lang.symbol_token> MULTIPLY		(* * *)
+%token <Lang.symbol_token> AST			(* * *)
 %token <Lang.symbol_token> DIVIDE		(* / *)
 
 %token <Lang.symbol_token> TINT			(* int *)
@@ -36,20 +36,29 @@ open Lang
 %token <Lang.symbol_token> FST			(* fst *)
 %token <Lang.symbol_token> SND			(* snd *)
 
+%token <Lang.symbol_token> EMPTYLIST		(* [] *)
+%token <Lang.symbol_token> LSQBRACKET		(* [ *)
+%token <Lang.symbol_token> RSQBRACKET		(* ] *)
+%token <Lang.symbol_token> DBCOLON		(* :: *)
+%token <Lang.symbol_token> HEAD			(* hd *)
+%token <Lang.symbol_token> TAIL			(* tl *)
+%token <Lang.symbol_token> EMPTY		(* empty *)
+
 %token EOF
 
 %left  GREATER SMALLEREQUAL
 %left  PLUS MINUS
-%left  MULTIPLY DIVIDE
+%left  AST DIVIDE
 %right OUTPUT
+%right DBCOLON
 
 %start <Lang.exp> prog
 
 %%
 
 prog:
-  | e=exp EOF				    { e }
-  | EOF	  			    	    { failwith "Empty file" }
+| e=exp EOF				    { e }
+| EOF	  			    	    { failwith "Empty file" }
 
 exp:
 | t=LPAREN RPAREN
@@ -72,7 +81,7 @@ exp:
   { {value=EAdd(e1, e2); pos=e1.pos} }
 | e1=exp MINUS e2=exp			    
   { {value=ESubtract(e1, e2); pos=e1.pos} }
-| e1=exp MULTIPLY e2=exp		    
+| e1=exp AST e2=exp		    
   { {value=EMultiply(e1, e2); pos=e1.pos} }
 | e1=exp DIVIDE e2=exp		    
   { {value=EDivide(e1, e2); pos=e1.pos} }
@@ -92,6 +101,16 @@ exp:
   { {value=EFst e; pos=t.pos} }
 | t=SND e=exp
   { {value=ESnd e; pos=t.pos} }
+| s=EMPTYLIST COLON t=types
+  { {value=EEmptylist t; pos=s.pos} }
+| e1=exp DBCOLON e2=exp
+  { {value=ECons(e1, e2); pos=e1.pos} }
+| t=HEAD e=exp
+  { {value=EHead e; pos=t.pos} }
+| t=TAIL e=exp
+  { {value=ETail e; pos=t.pos} }
+| t=EMPTY e=exp
+  { {value=EEmpty e; pos=e.pos} }
 
 
 types:
@@ -101,3 +120,5 @@ types:
 | TBOOL		  	   	  		 { TBool }
 | TUNIT						 { TUnit }
 | t1=types OUTPUT t2=types	  		 { TFun(t1, t2) }
+| t1=types AST t2=types				 { TPair(t1, t2) }
+| LSQBRACKET t=types RSQBRACKET			 { TList t }

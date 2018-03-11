@@ -1,0 +1,3 @@
+let list : [ int * int ] = (0, 0) :: (1, 1) :: (2, 2) :: [] : int * int
+in
+hd (tl list)

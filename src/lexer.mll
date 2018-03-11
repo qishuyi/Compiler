@@ -15,7 +15,7 @@ match tok with
 | RPAREN s 	   	-> 	"')'" ^ (locate s.pos)
 | PLUS s 	   	-> 	"+" ^ (locate s.pos)
 | MINUS s 	   	-> 	"-" ^ (locate s.pos)
-| MULTIPLY s 	   	-> 	"*" ^ (locate s.pos)
+| AST s 	   	-> 	"*" ^ (locate s.pos)
 | DIVIDE s 	   	-> 	"/" ^ (locate s.pos)
 | SMALLEREQUAL s   	-> 	"<=" ^ (locate s.pos)
 | GREATER s    	   	-> 	">" ^ (locate s.pos)
@@ -36,6 +36,13 @@ match tok with
 | COMMA s		->	"," ^ (locate s.pos)
 | FST s			->	"fst" ^ (locate s.pos)
 | SND s			-> 	"snd" ^ (locate s.pos)
+| EMPTYLIST s		->	"[]" ^ (locate s.pos)
+| LSQBRACKET s		->	"[" ^ (locate s.pos)
+| RSQBRACKET s		-> 	"]" ^ (locate s.pos)
+| DBCOLON s  		->	"::" ^ (locate s.pos)
+| HEAD s	  	->	"hd" ^ (locate s.pos)
+| TAIL s		->	"tl" ^ (locate s.pos)
+| EMPTY s		->	"empty" ^ (locate s.pos)
 | EOF 		   	-> 	""
 
 let string_of_token_list (toks:Parser.token list) : string =
@@ -64,7 +71,7 @@ rule token = parse
 | ")"			    { RPAREN       ({value=")" ; pos=lexbuf.Lexing.lex_start_p}) }
 | "+"			    { PLUS         ({value="+" ; pos=lexbuf.Lexing.lex_start_p}) }
 | "-"			    { MINUS        ({value="-" ; pos=lexbuf.Lexing.lex_start_p}) }
-| "*"			    { MULTIPLY     ({value="*" ; pos=lexbuf.Lexing.lex_start_p}) }
+| "*"			    { AST	   ({value="*" ; pos=lexbuf.Lexing.lex_start_p}) }
 | "/"			    { DIVIDE       ({value="/" ; pos=lexbuf.Lexing.lex_start_p}) }
 | "<="        		    { SMALLEREQUAL ({value="<="; pos=lexbuf.Lexing.lex_start_p}) }
 | ">"			    { GREATER      ({value=">" ; pos=lexbuf.Lexing.lex_start_p})}
@@ -82,8 +89,15 @@ rule token = parse
 | "bool"		    { TBOOL	   ({value="bool" ; pos=lexbuf.Lexing.lex_start_p})}
 | "unit"		    { TUNIT	   ({value="unit" ; pos=lexbuf.Lexing.lex_start_p})}
 | ":"			    { COLON	   ({value=":" ; pos=lexbuf.Lexing.lex_start_p})}
+| "::"			    { DBCOLON	   ({value="::" ; pos=lexbuf.Lexing.lex_start_p})}
 | ","			    { COMMA	   ({value=","; pos=lexbuf.Lexing.lex_start_p})}
 | "fst"			    { FST	   ({value="fst"; pos=lexbuf.Lexing.lex_start_p})}
 | "snd"			    { SND	   ({value="snd"; pos=lexbuf.Lexing.lex_start_p})}
+| "[]"			    { EMPTYLIST    ({value="[]"; pos=lexbuf.Lexing.lex_start_p})}
+| "["			    { LSQBRACKET   ({value="["; pos=lexbuf.Lexing.lex_start_p})}
+| "]"			    { RSQBRACKET   ({value="]"; pos=lexbuf.Lexing.lex_start_p})}
+| "hd"			    { HEAD	   ({value="hd"; pos=lexbuf.Lexing.lex_start_p})}
+| "tl"			    { TAIL	   ({value="tl"; pos=lexbuf.Lexing.lex_start_p})}
+| "empty"		    { EMPTY	   ({value="empty"; pos=lexbuf.Lexing.lex_start_p})}
 | variable+		    { VAR  	   ({value=create_variable lexbuf ; pos=lexbuf.Lexing.lex_start_p})}
 | _ as c 		    { raise @@ Lexer_error("Unexpected character " ^ Char.escaped c) }

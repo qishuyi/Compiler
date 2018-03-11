@@ -10,11 +10,14 @@ unit=./test/test_typecheck/test4.txt
 file4=./test/test_typecheck/test4.step.out
 pair=./test/test_typecheck/test5.txt
 file5=./test/test_typecheck/test5.step.out
+list=./test/test_typecheck/test6.txt
+file6=./test/test_typecheck/test6.step.out
 temp1=./test/test_typecheck/temp1.test
 temp2=./test/test_typecheck/temp2.test
 temp3=./test/test_typecheck/temp3.test
 temp4=./test/test_typecheck/temp4.test
 temp5=./test/test_typecheck/temp5.test
+temp6=./test/test_typecheck/temp6.test
 
 ./compiler.native $let_binding -step > $temp1
 diff --brief <(sort $temp1) <(sort $file1) >/dev/null
@@ -36,6 +39,10 @@ comp_value_unit=$?
 diff --brief <(sort $temp5) <(sort $file5) >/dev/null
 comp_value_pair=$?
 
+./compiler.native $list -step > $temp6
+diff --brief <(sort $temp6) <(sort $file6) >/dev/null
+comp_value_list=$?
+
 if [ $comp_value_let_binding -ne 0 ]
 then
     echo "Error: Test case did not pass for let_binding evaluation."
@@ -51,6 +58,9 @@ then
 elif [ $comp_value_pair -ne 0 ]
 then
     echo "Error: Test case did not pass for pair evaluation."
+elif [ $comp_value_list -ne 0 ]
+then
+    echo "Error: Test case did not pass for list evaluation."
 else
     echo "Test suite passed for typechecking."
 fi
