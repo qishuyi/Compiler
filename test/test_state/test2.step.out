@@ -1,0 +1,10 @@
+(let x = (ref 5) in (while (> !x 1) do (x := (- !x 1)) end) ; !x)
+(let x = Ptr(0) in (while (> !x 1) do (x := (- !x 1)) end) ; !x)
+(while (> !Ptr(0) 1) do (Ptr(0) := (- !Ptr(0) 1)) end) ; !Ptr(0)
+(while (> !Ptr(0) 1) do (Ptr(0) := (- !Ptr(0) 1)) end) ; !Ptr(0)
+(while (> !Ptr(0) 1) do (Ptr(0) := (- !Ptr(0) 1)) end) ; !Ptr(0)
+(while (> !Ptr(0) 1) do (Ptr(0) := (- !Ptr(0) 1)) end) ; !Ptr(0)
+(while (> !Ptr(0) 1) do (Ptr(0) := (- !Ptr(0) 1)) end) ; !Ptr(0)
+() ; !Ptr(0)
+() ; 1
+1

@@ -8,6 +8,7 @@ debug: all compiler.cma
 
 test:
 	./test/test_typecheck/test.sh
+	./test/test_state/test.sh
 
 %.cma: .FORCE
 	$(OCB) $@

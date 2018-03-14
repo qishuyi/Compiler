@@ -1,6 +1,7 @@
 open Lang
 open Lexer
 open Parser
+open Expression
 
 let is_parse = ref false
 let is_lex = ref false
@@ -29,7 +30,7 @@ let main () =
   "[" ^ (Lexer.string_of_token_list (List.rev toks)) ^ "]" |> print_endline end
   else
   let exp = Parser.prog Lexer.token lexbuf
-  in if is_parse = ref true then Lang.string_of_exp exp.value |> print_endline
-  else Lang.typecheck [] exp |> ignore; Lang.eval exp !is_step |> ignore
+  in if is_parse = ref true then Expression.string_of_exp exp.value |> print_endline
+  else Lang.typecheck [] exp |> ignore ; Lang.eval exp [] !is_step |> ignore
   
 let _ = if !Sys.interactive then () else main ()

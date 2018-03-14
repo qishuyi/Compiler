@@ -2,6 +2,7 @@
 open Lexing
 open Parser
 open Lang
+open Expression
 
 exception Lexer_error of string
 
@@ -18,7 +19,6 @@ match tok with
 | AST s 	   	-> 	"*" ^ (locate s.pos)
 | DIVIDE s 	   	-> 	"/" ^ (locate s.pos)
 | SMALLEREQUAL s   	-> 	"<=" ^ (locate s.pos)
-| GREATER s    	   	-> 	">" ^ (locate s.pos)
 | IF s 	 	   	-> 	"'if'" ^ (locate s.pos)
 | THEN s 	   	-> 	"'then'" ^ (locate s.pos)
 | ELSE s 	   	-> 	"'else'" ^ (locate s.pos)
@@ -43,6 +43,15 @@ match tok with
 | HEAD s	  	->	"hd" ^ (locate s.pos)
 | TAIL s		->	"tl" ^ (locate s.pos)
 | EMPTY s		->	"empty" ^ (locate s.pos)
+| REF s			->	"ref" ^ (locate s.pos)
+| UPDATE s		->	":=" ^ (locate s.pos)
+| DEREF s		-> 	"!" ^ (locate s.pos)
+| SEMICOLON s		->	";" ^ (locate s.pos)
+| LANGBRACKET s		->	"<" ^ (locate s.pos)
+| RANGBRACKET s		->	">" ^ (locate s.pos)
+| WHILE s     		->	"while" ^ (locate s.pos)
+| DO s			-> 	"do" ^ (locate s.pos)
+| END s			-> 	"end" ^ (locate s.pos)
 | EOF 		   	-> 	""
 
 let string_of_token_list (toks:Parser.token list) : string =
@@ -69,12 +78,13 @@ rule token = parse
 | "true" | "false"	    { BOOL   	   ({value = (create_bool lexbuf); pos = lexbuf.Lexing.lex_start_p}) }
 | "("			    { LPAREN       ({value="(" ; pos=lexbuf.Lexing.lex_start_p}) }
 | ")"			    { RPAREN       ({value=")" ; pos=lexbuf.Lexing.lex_start_p}) }
+| "<"			    { LANGBRACKET  ({value="<"; pos=lexbuf.Lexing.lex_start_p})}
+| ">"			    { RANGBRACKET  ({value=">"; pos=lexbuf.Lexing.lex_start_p})}
 | "+"			    { PLUS         ({value="+" ; pos=lexbuf.Lexing.lex_start_p}) }
 | "-"			    { MINUS        ({value="-" ; pos=lexbuf.Lexing.lex_start_p}) }
 | "*"			    { AST	   ({value="*" ; pos=lexbuf.Lexing.lex_start_p}) }
 | "/"			    { DIVIDE       ({value="/" ; pos=lexbuf.Lexing.lex_start_p}) }
 | "<="        		    { SMALLEREQUAL ({value="<="; pos=lexbuf.Lexing.lex_start_p}) }
-| ">"			    { GREATER      ({value=">" ; pos=lexbuf.Lexing.lex_start_p})}
 | "="			    { BE      	   ({value="=" ; pos=lexbuf.Lexing.lex_start_p}) }
 | "->"			    { OUTPUT	   ({value="->"; pos=lexbuf.Lexing.lex_start_p})}
 | "if"			    { IF 	   ({value="if" ; pos=lexbuf.Lexing.lex_start_p}) }
@@ -99,5 +109,12 @@ rule token = parse
 | "hd"			    { HEAD	   ({value="hd"; pos=lexbuf.Lexing.lex_start_p})}
 | "tl"			    { TAIL	   ({value="tl"; pos=lexbuf.Lexing.lex_start_p})}
 | "empty"		    { EMPTY	   ({value="empty"; pos=lexbuf.Lexing.lex_start_p})}
+| "ref"			    { REF	   ({value="ref"; pos=lexbuf.Lexing.lex_start_p})}
+| ":="			    { UPDATE	   ({value=":="; pos=lexbuf.Lexing.lex_start_p})}
+| "!"			    { DEREF	   ({value="!"; pos=lexbuf.Lexing.lex_start_p})}
+| ";"			    { SEMICOLON	   ({value=";"; pos=lexbuf.Lexing.lex_start_p})}
+| "while"		    { WHILE	   ({value="while"; pos=lexbuf.Lexing.lex_start_p})}
+| "do"			    { DO	   ({value="do"; pos=lexbuf.Lexing.lex_start_p})}
+| "end"			    { END	   ({value="end"; pos=lexbuf.Lexing.lex_start_p})}
 | variable+		    { VAR  	   ({value=create_variable lexbuf ; pos=lexbuf.Lexing.lex_start_p})}
 | _ as c 		    { raise @@ Lexer_error("Unexpected character " ^ Char.escaped c) }

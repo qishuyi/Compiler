@@ -1,0 +1,2 @@
+let x : <int> = ref 5 in
+  while !x > 1 do x := !x -1 end ; !x

@@ -1,0 +1,15 @@
+(let x = (ref ([] : int)) in (let counter = (ref 0) in (while (<= !counter 5) do (x := (!counter :: !x)) ; (counter := (+ counter 1)) end) ; (hd !x)))
+(let x = Ptr(0) in (let counter = (ref 0) in (while (<= !counter 5) do (x := (!counter :: !x)) ; (counter := (+ counter 1)) end) ; (hd !x)))
+(let counter = (ref 0) in (while (<= !counter 5) do (Ptr(0) := (!counter :: !Ptr(0))) ; (counter := (+ counter 1)) end) ; (hd !Ptr(0)))
+(let counter = Ptr(1) in (while (<= !counter 5) do (Ptr(0) := (!counter :: !Ptr(0))) ; (counter := (+ counter 1)) end) ; (hd !Ptr(0)))
+(while (<= !Ptr(1) 5) do (Ptr(0) := (!Ptr(1) :: !Ptr(0))) ; (Ptr(1) := (+ Ptr(1) 1)) end) ; (hd !Ptr(0))
+(while (<= !Ptr(1) 5) do (Ptr(0) := (!Ptr(1) :: !Ptr(0))) ; (Ptr(1) := (+ Ptr(1) 1)) end) ; (hd !Ptr(0))
+(while (<= !Ptr(1) 5) do (Ptr(0) := (!Ptr(1) :: !Ptr(0))) ; (Ptr(1) := (+ Ptr(1) 1)) end) ; (hd !Ptr(0))
+(while (<= !Ptr(1) 5) do (Ptr(0) := (!Ptr(1) :: !Ptr(0))) ; (Ptr(1) := (+ Ptr(1) 1)) end) ; (hd !Ptr(0))
+(while (<= !Ptr(1) 5) do (Ptr(0) := (!Ptr(1) :: !Ptr(0))) ; (Ptr(1) := (+ Ptr(1) 1)) end) ; (hd !Ptr(0))
+(while (<= !Ptr(1) 5) do (Ptr(0) := (!Ptr(1) :: !Ptr(0))) ; (Ptr(1) := (+ Ptr(1) 1)) end) ; (hd !Ptr(0))
+(while (<= !Ptr(1) 5) do (Ptr(0) := (!Ptr(1) :: !Ptr(0))) ; (Ptr(1) := (+ Ptr(1) 1)) end) ; (hd !Ptr(0))
+() ; (hd !Ptr(0))
+() ; (hd (5 :: (4 :: (3 :: (2 :: (1 :: (0 :: ([] : int))))))))
+() ; 5
+5

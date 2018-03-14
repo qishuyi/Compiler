@@ -179,4 +179,25 @@ so that the operators take on the more familiar infix style
   Our list implementation supports three functions:
   1. ```hd e``` returns the head element of the list ```e```.
   2. ```tl e``` returns the list resulting from stripping the head element off list e.
-  3. ```empty e``` returns ```true``` iff the list ```e``` is the empty list and ```false``` if it is not empty.  
+  3. ```empty e``` returns ```true``` iff the list ```e``` is the empty list and ```false``` if it is not empty.
+
+## [6.0.1] - 2018-03-14
+### Added
+- Added reference calls to the language, specifically extended the compiler to handle the following:
+  ```
+  e ::= (e) | n | b | e1 (+) e2 | if e1 then e2 else e3
+    | x | let x : t = e1 in e2
+    | e1 e2 | fun (x:t1) : t2 -> e | fix f (x:t1) : t2 -> e
+    | ()
+    | (e1, e2) | fst e | snd e
+    | ref e | e1 := e2 | !e | e1 ; e2
+
+    t ::= int | bool | t1 -> t2 | unit | <t>
+  ```
+  where ```<t>``` denotes the type of a reference cell. ```Ptr(n)``` is an internal expression, functioning as the intermediate state between a reference cell and an expression. It is visible only during the process of evaluation and is hidden from the user.
+  In ```Ptr(n)```, n is the unique key associated with a particular expression. We use an association list to store ```int * expression``` pairs and look up an expression with ```n``` using ```List.assoc```.
+- Added while loops to the language and let it handle the additional syntax below:
+  ```
+  e ::= ... | while e1 do e2 end
+  ```
+  In our language, a finished ```while``` loop evaluates to the unit value and only updates the value each time it goes inside the loop. 

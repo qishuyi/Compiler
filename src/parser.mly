@@ -1,58 +1,79 @@
 %{
 open Lang
+open Expression
+open Types
 %}
 
-%token <Lang.int_token> INT
-%token <Lang.float_token> FLOAT
-%token <Lang.bool_token> BOOL
-%token <Lang.symbol_token> VAR
+%token <Expression.int_token> INT
+%token <Expression.float_token> FLOAT
+%token <Expression.bool_token> BOOL
+%token <Expression.symbol_token> VAR
 
-%token <Lang.symbol_token> LPAREN		(* ( *)
-%token <Lang.symbol_token> RPAREN		(* ) *)
-%token <Lang.symbol_token> PLUS			(* + *)
-%token <Lang.symbol_token> MINUS		(* - *)
-%token <Lang.symbol_token> AST			(* * *)
-%token <Lang.symbol_token> DIVIDE		(* / *)
+%token <Expression.symbol_token> LPAREN		(* ( *)
+%token <Expression.symbol_token> RPAREN		(* ) *)
+%token <Expression.symbol_token> PLUS		(* + *)
+%token <Expression.symbol_token> MINUS		(* - *)
+%token <Expression.symbol_token> AST		(* * *)
+%token <Expression.symbol_token> DIVIDE		(* / *)
 
-%token <Lang.symbol_token> TINT			(* int *)
-%token <Lang.symbol_token> TFLOAT		(* float *)
-%token <Lang.symbol_token> TBOOL		(* bool *)
-%token <Lang.symbol_token> TUNIT		(* unit *)
+%token <Expression.symbol_token> TINT		(* int *)
+%token <Expression.symbol_token> TFLOAT		(* float *)
+%token <Expression.symbol_token> TBOOL		(* bool *)
+%token <Expression.symbol_token> TUNIT		(* unit *)
 
-%token <Lang.symbol_token> SMALLEREQUAL		(* <= *)
-%token <Lang.symbol_token> GREATER		(* > *)
-%token <Lang.symbol_token> IF	  		(* if *)
-%token <Lang.symbol_token> THEN			(* then *)
-%token <Lang.symbol_token> ELSE			(* else *)
-%token <Lang.symbol_token> LET			(* let *)
-%token <Lang.symbol_token> BE			(* = *)
-%token <Lang.symbol_token> IN			(* in *)
-%token <Lang.symbol_token> FUN			(* fun *)
-%token <Lang.symbol_token> OUTPUT		(* -> *)
-%token <Lang.symbol_token> FIX			(* fix *)
-%token <Lang.symbol_token> COLON		(* : *)
+%token <Expression.symbol_token> SMALLEREQUAL	(* <= *)
+%token <Expression.symbol_token> IF	  	(* if *)
+%token <Expression.symbol_token> THEN		(* then *)
+%token <Expression.symbol_token> ELSE		(* else *)
+%token <Expression.symbol_token> LET		(* let *)
+%token <Expression.symbol_token> BE		(* = *)
+%token <Expression.symbol_token> IN		(* in *)
+%token <Expression.symbol_token> FUN		(* fun *)
+%token <Expression.symbol_token> OUTPUT		(* -> *)
+%token <Expression.symbol_token> FIX		(* fix *)
+%token <Expression.symbol_token> COLON		(* : *)
 
-%token <Lang.symbol_token> COMMA		(* , *)
-%token <Lang.symbol_token> FST			(* fst *)
-%token <Lang.symbol_token> SND			(* snd *)
+%token <Expression.symbol_token> COMMA		(* , *)
+%token <Expression.symbol_token> FST		(* fst *)
+%token <Expression.symbol_token> SND		(* snd *)
 
-%token <Lang.symbol_token> EMPTYLIST		(* [] *)
-%token <Lang.symbol_token> LSQBRACKET		(* [ *)
-%token <Lang.symbol_token> RSQBRACKET		(* ] *)
-%token <Lang.symbol_token> DBCOLON		(* :: *)
-%token <Lang.symbol_token> HEAD			(* hd *)
-%token <Lang.symbol_token> TAIL			(* tl *)
-%token <Lang.symbol_token> EMPTY		(* empty *)
+%token <Expression.symbol_token> EMPTYLIST	(* [] *)
+%token <Expression.symbol_token> LSQBRACKET	(* [ *)
+%token <Expression.symbol_token> RSQBRACKET	(* ] *)
+%token <Expression.symbol_token> DBCOLON	(* :: *)
+%token <Expression.symbol_token> HEAD		(* hd *)
+%token <Expression.symbol_token> TAIL		(* tl *)
+%token <Expression.symbol_token> EMPTY		(* empty *)
+
+%token <Expression.symbol_token> REF		(* ref *)
+%token <Expression.symbol_token> UPDATE		(* := *)
+%token <Expression.symbol_token> DEREF		(* ! *)
+%token <Expression.symbol_token> SEMICOLON	(* ; *)
+%token <Expression.symbol_token> LANGBRACKET	(* < *)
+%token <Expression.symbol_token> RANGBRACKET 	(* > *)
+
+%token <Expression.symbol_token> WHILE		(* while *)
+%token <Expression.symbol_token> DO		(* do *)
+%token <Expression.symbol_token> END		(* end *)
 
 %token EOF
 
-%left  GREATER SMALLEREQUAL
+%nonassoc IN
+%nonassoc SEMICOLON
+%right OUTPUT
+%nonassoc LET
+%nonassoc IF ELSE WHILE DO
+%nonassoc UPDATE
+%right HEAD TAIL EMPTY FST SND
+%nonassoc REF
+%nonassoc COLON
+%right DBCOLON
+%left  RANGBRACKET SMALLEREQUAL
 %left  PLUS MINUS
 %left  AST DIVIDE
-%right OUTPUT
-%right DBCOLON
+%nonassoc INT FLOAT BOOL EMPTYLIST VAR LPAREN DEREF
 
-%start <Lang.exp> prog
+%start <Expression.exp> prog
 
 %%
 
@@ -73,6 +94,10 @@ exp:
   { {value=EVar x; pos=x.pos} }
 | b=BOOL			    
   { {value=EBool b; pos=b.pos} }
+| t=MINUS n=INT 
+  { {value=EInt {value= - n.value; pos=n.pos}; pos=t.pos} }
+| t=MINUS f=FLOAT 
+  { {value=EFloat {value= -. f.value; pos=f.pos}; pos=t.pos} }
 | s=FUN LPAREN x=VAR COLON t1=types RPAREN COLON t2=types OUTPUT e=exp
   { {value=EFun({v={v=x; typ=t1}; typ=t2}, e); pos=s.pos} }
 | s=FIX f=VAR LPAREN x=VAR COLON t1=types RPAREN COLON t2=types OUTPUT e=exp
@@ -87,7 +112,7 @@ exp:
   { {value=EDivide(e1, e2); pos=e1.pos} }
 | e1=exp SMALLEREQUAL e2=exp		    
   { {value=ELessthanorequal(e1, e2); pos=e1.pos} }
-| e1=exp GREATER e2=exp
+| e1=exp RANGBRACKET e2=exp
   { {value=EMorethan(e1, e2); pos=e1.pos} }
 | s=IF e1=exp THEN e2=exp ELSE e3=exp
   { {value=EIf(e1, e2, e3); pos=s.pos} }
@@ -110,7 +135,17 @@ exp:
 | t=TAIL e=exp
   { {value=ETail e; pos=t.pos} }
 | t=EMPTY e=exp
-  { {value=EEmpty e; pos=e.pos} }
+  { {value=EEmpty e; pos=t.pos} }
+| t=REF e=exp
+  { {value=ERef e; pos=t.pos} }
+| e1=exp UPDATE e2=exp
+  { {value=EUpdate(e1, e2); pos=e1.pos} }
+| t=DEREF e=exp
+  { {value=EDeref e; pos=e.pos} }
+| e1=exp SEMICOLON e2=exp
+  { {value=EIgnore(e1, e2); pos=e1.pos} }
+| t=WHILE e1=exp DO e2=exp END
+  { {value=EWhile(e1, e2); pos=t.pos} }
 
 
 types:
@@ -122,3 +157,4 @@ types:
 | t1=types OUTPUT t2=types	  		 { TFun(t1, t2) }
 | t1=types AST t2=types				 { TPair(t1, t2) }
 | LSQBRACKET t=types RSQBRACKET			 { TList t }
+| LANGBRACKET t=types RANGBRACKET		 { TRef t }
