@@ -2,12 +2,14 @@
 open Lang
 open Expression
 open Types
+open Signature
 %}
 
 %token <Expression.int_token> INT
 %token <Expression.float_token> FLOAT
 %token <Expression.bool_token> BOOL
 %token <Expression.symbol_token> VAR
+%token <Expression.symbol_token> CONSTRUCTOR
 
 %token <Expression.symbol_token> LPAREN		(* ( *)
 %token <Expression.symbol_token> RPAREN		(* ) *)
@@ -56,13 +58,17 @@ open Types
 %token <Expression.symbol_token> DO		(* do *)
 %token <Expression.symbol_token> END		(* end *)
 
+%token <Expression.symbol_token> TYPE		(* type *)
+%token <Expression.symbol_token> TAG		(* | *)
+%token <Expression.symbol_token> OF		(* of *)
+
 %token EOF
 
 %nonassoc IN
 %nonassoc SEMICOLON
 %right OUTPUT
 %nonassoc LET
-%nonassoc IF ELSE WHILE DO
+%nonassoc IF ELSE WHILE
 %nonassoc UPDATE
 %right HEAD TAIL EMPTY FST SND
 %nonassoc REF
@@ -73,13 +79,27 @@ open Types
 %left  AST DIVIDE
 %nonassoc INT FLOAT BOOL EMPTYLIST VAR LPAREN DEREF
 
-%start <Expression.exp> prog
+%start <Signature.signature * Expression.exp> prog
 
 %%
 
+sigma:
+| t=TYPE x=VAR BE c=cases			 { Sig(x.value, c) }
+
+cases:
+| TAG x=CONSTRUCTOR				 { [SConstructor x.value] }
+| TAG x=CONSTRUCTOR OF l=modtypes		 { [Constructor (x.value, l)] }
+| c1=cases TAG x=CONSTRUCTOR OF l=modtypes	 { List.append c1 [Constructor (x.value, l)] }
+| c1=cases TAG x=CONSTRUCTOR 			 { List.append c1 [SConstructor x.value] }
+
+modtypes:
+| t=types					 { [t] }
+| l=modtypes t=types				 { List.append l [t]  }
+
 prog:
-| e=exp EOF				    { e }
-| EOF	  			    	    { failwith "Empty file" }
+| e=exp EOF					 { (Sig("", []),  e) }
+| s=sigma e=prog			    	 { (s, (snd e)) }
+| EOF	  			    	    	 { failwith "Empty file" }
 
 exp:
 | t=LPAREN RPAREN
@@ -146,7 +166,14 @@ exp:
   { {value=EIgnore(e1, e2); pos=e1.pos} }
 | t=WHILE e1=exp DO e2=exp END
   { {value=EWhile(e1, e2); pos=t.pos} }
+| x=CONSTRUCTOR a=args
+  { {value=EConstructor(x.value, a); pos=x.pos} }
+| x=CONSTRUCTOR
+  { {value=EConstructor(x.value, []); pos=x.pos} }
 
+args:
+| e=exp						 { [e] }
+| l=args COMMA e=exp				 { List.append l [e] }
 
 types:
 | LPAREN t=types RPAREN				 { t }

@@ -4,9 +4,9 @@ open Parser
 open Expression
 
 let is_parse = ref false
-let is_lex = ref false
-let is_step = ref false
-let arglist = ref []
+let is_lex   = ref false
+let is_step  = ref false
+let arglist  = ref []
 
 let main () =
   (* Recognize flags during parsing *)
@@ -16,7 +16,7 @@ let main () =
     in let usage_msg = "Usage: my-project [flags] [args]"
   in Arg.parse speclist (fun anon -> arglist :=  anon :: !arglist) usage_msg;
 
-  (* Print out the information corresponding to the flags *)
+  (* If the -lex flag is specified, print out the tokens *)
   let lexbuf = Sys.argv.(1) |> open_in |> Lexing.from_channel
   in
   if is_lex = ref true then begin
@@ -29,8 +29,9 @@ let main () =
   let toks = append_list [] lexbuf in
   "[" ^ (Lexer.string_of_token_list (List.rev toks)) ^ "]" |> print_endline end
   else
-  let exp = Parser.prog Lexer.token lexbuf
-  in if is_parse = ref true then Expression.string_of_exp exp.value |> print_endline
-  else Lang.typecheck [] exp |> ignore ; Lang.eval exp [] !is_step |> ignore
+  let ret = Parser.prog Lexer.token lexbuf in
+  let signature = fst ret in let exp = snd ret
+  in if is_parse = ref true then (Signature.string_of_signature signature) ^ (Expression.string_of_exp exp.value) |> print_endline
+  else Lang.typecheck [] exp |> ignore ; Lang.eval exp [] signature !is_step |> ignore
   
 let _ = if !Sys.interactive then () else main ()

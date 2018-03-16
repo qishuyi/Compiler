@@ -52,6 +52,10 @@ match tok with
 | WHILE s     		->	"while" ^ (locate s.pos)
 | DO s			-> 	"do" ^ (locate s.pos)
 | END s			-> 	"end" ^ (locate s.pos)
+| TYPE s		-> 	"type" ^ (locate s.pos)
+| TAG s			-> 	"|" ^ (locate s.pos)
+| OF s			-> 	"of" ^ (locate s.pos)
+| CONSTRUCTOR s		->	s.value ^ (locate s.pos)
 | EOF 		   	-> 	""
 
 let string_of_token_list (toks:Parser.token list) : string =
@@ -61,13 +65,15 @@ let create_int lexbuf = lexeme lexbuf |> int_of_string
 let create_float lexbuf = lexeme lexbuf |> float_of_string
 let create_bool lexbuf = lexeme lexbuf |> bool_of_string
 let create_variable lexbuf = lexeme lexbuf
+let create_constructor lexbuf = lexeme lexbuf
 }
 
-let newline    = '\n' | ('\r' '\n') | '\r'
-let whitespace = ['\t' ' ']
-let digit      = ['0'-'9']
-let float      = digit '.' digit* | "nan"
-let variable   = ['A'-'z'] | ['0'-'9']
+let newline     = '\n' | ('\r' '\n') | '\r'
+let whitespace  = ['\t' ' ']
+let digit       = ['0'-'9']
+let float       = digit '.' digit* | "nan"
+let variable    = ['a'-'z'] | ['0'-'9']
+let constructor = ['A'-'Z'] ['A' - 'z']*
 
 rule token = parse
 | eof                       { EOF }
@@ -116,5 +122,9 @@ rule token = parse
 | "while"		    { WHILE	   ({value="while"; pos=lexbuf.Lexing.lex_start_p})}
 | "do"			    { DO	   ({value="do"; pos=lexbuf.Lexing.lex_start_p})}
 | "end"			    { END	   ({value="end"; pos=lexbuf.Lexing.lex_start_p})}
+| "type"		    { TYPE	   ({value="type"; pos=lexbuf.Lexing.lex_start_p})}
+| "|"			    { TAG	   ({value="|"; pos=lexbuf.Lexing.lex_start_p})}
+| "of"			    { OF	   ({value="of"; pos=lexbuf.Lexing.lex_start_p})}
+| constructor+		    { CONSTRUCTOR  ({value=create_constructor lexbuf; pos=lexbuf.Lexing.lex_start_p})}
 | variable+		    { VAR  	   ({value=create_variable lexbuf ; pos=lexbuf.Lexing.lex_start_p})}
 | _ as c 		    { raise @@ Lexer_error("Unexpected character " ^ Char.escaped c) }

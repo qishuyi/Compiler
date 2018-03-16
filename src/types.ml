@@ -14,7 +14,7 @@ let rec string_of_type (typ:t) : string =
 match typ with
 | TInt           -> "int"
 | TFloat         -> "float"
-| TBool          -> "boolean"
+| TBool          -> "bool"
 | TFun(t1, t2)   -> (string_of_type t1) ^  " -> " ^ (string_of_type t2)
 | TUnit          -> "unit"
 | TPair(t1, t2)  -> (string_of_type t1) ^ " * " ^ (string_of_type t2)

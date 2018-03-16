@@ -50,12 +50,17 @@ type expression =
 | EPointer of address
 | EIgnore of exp * exp
 | EWhile of exp * exp
+| EConstructor of string * exp list
 and exp = { value : expression ; pos : Lexing.position }
 
 type environment = (int * expression) list
 
 (* Turn the AST into string *)
 let rec string_of_exp (e:expression) : string =
+  let rec string_of_exp_list (e:exp list) (ret:string) : string =
+    if List.length e = 0 then ret 
+    else (string_of_exp_list (List.tl e) (string_of_exp (List.hd e).value) ^ ret)
+in
 match e with
 | EInt n                            ->  string_of_int(n.value)
   | EAdd(e1, e2)                      ->  "(+ " ^ string_of_exp e1.value ^ " " ^ string_of_exp e2.value ^ ")"
@@ -87,4 +92,5 @@ match e with
   | EIgnore(e1, e2)                   -> (string_of_exp e1.value) ^ " ; " ^ (string_of_exp e2.value)
 | EPointer n                        -> "Ptr(" ^ (string_of_int n) ^ ")"
   | EWhile(e1, e2)                    -> "(while " ^ (string_of_exp e1.value) ^ " do " ^ (string_of_exp e2.value) ^ " end)"
+| EConstructor (name, elist)        -> name ^ "( " ^ (string_of_exp_list elist "") ^ ")"
 
