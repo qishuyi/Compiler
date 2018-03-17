@@ -201,9 +201,18 @@ so that the operators take on the more familiar infix style
   e ::= ... | while e1 do e2 end
   ```
   In our language, a finished ```while``` loop evaluates to the unit value and only updates the value each time it goes inside the loop.
+<<<<<<< HEAD
 
 ## [7.0.1] - 2018-03-17  
 ### Added  
 - Added variants (type declarations) to the language. User-defined types are now possible. Over variant types, pattern-matching is also introduced to the language.  
 ### Known bugs  
 - After introducing pattern matching, reference tends to fail sometimes.  
+=======
+  
+  ## [7.0.1] - 2018-03-17
+  ### Added
+  - Added variants (type declarations) to the language. User-defined types are now possible.
+  ### Known bugs
+  - After introducing pattern matching, reference tends to fail sometimes.
+>>>>>>> e592fcc5d436a40bd9f081304c9630327858f0a2
