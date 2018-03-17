@@ -200,4 +200,8 @@ so that the operators take on the more familiar infix style
   ```
   e ::= ... | while e1 do e2 end
   ```
-  In our language, a finished ```while``` loop evaluates to the unit value and only updates the value each time it goes inside the loop. 
+  In our language, a finished ```while``` loop evaluates to the unit value and only updates the value each time it goes inside the loop.
+  
+  ## [7.0.1] - 2018-03-17
+  ### Added
+  - Added variants (type declarations) to the language. 
