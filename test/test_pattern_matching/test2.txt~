@@ -1,0 +1,7 @@
+type value =
+| VInt of <int> <int>
+| VBool of <bool>
+
+let x:<int> = ref 4 in
+  let y:<int> = ref 0 in
+    

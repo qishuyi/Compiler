@@ -1,0 +1,4 @@
+type value =
+| VInt of <int> <int>
+| VBool of <bool>
+

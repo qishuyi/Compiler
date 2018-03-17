@@ -56,6 +56,8 @@ match tok with
 | TAG s			-> 	"|" ^ (locate s.pos)
 | OF s			-> 	"of" ^ (locate s.pos)
 | CONSTRUCTOR s		->	s.value ^ (locate s.pos)
+| MATCH s     		->	s.value ^ (locate s.pos)
+| WITH s		-> 	s.value ^ (locate s.pos)
 | EOF 		   	-> 	""
 
 let string_of_token_list (toks:Parser.token list) : string =
@@ -125,6 +127,8 @@ rule token = parse
 | "type"		    { TYPE	   ({value="type"; pos=lexbuf.Lexing.lex_start_p})}
 | "|"			    { TAG	   ({value="|"; pos=lexbuf.Lexing.lex_start_p})}
 | "of"			    { OF	   ({value="of"; pos=lexbuf.Lexing.lex_start_p})}
+| "match"		    { MATCH	   ({value="match"; pos=lexbuf.Lexing.lex_start_p})}
+| "with"		    { WITH	   ({value="with"; pos=lexbuf.Lexing.lex_start_p})}
 | constructor+		    { CONSTRUCTOR  ({value=create_constructor lexbuf; pos=lexbuf.Lexing.lex_start_p})}
 | variable+		    { VAR  	   ({value=create_variable lexbuf ; pos=lexbuf.Lexing.lex_start_p})}
 | _ as c 		    { raise @@ Lexer_error("Unexpected character " ^ Char.escaped c) }

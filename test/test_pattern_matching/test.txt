@@ -1,0 +1,10 @@
+type value =
+| VInt of int
+| VBool of bool
+| VFloat of float
+
+let x:value = VInt (3) in
+match x with
+| VInt (x) -> x + x
+| VBool (b) -> if b then 1 else 0
+| VFloat (f) -> f + f

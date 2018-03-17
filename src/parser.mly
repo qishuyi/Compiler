@@ -62,12 +62,15 @@ open Signature
 %token <Expression.symbol_token> TAG		(* | *)
 %token <Expression.symbol_token> OF		(* of *)
 
+%token <Expression.symbol_token> MATCH		(* match *)
+%token <Expression.symbol_token> WITH		(* with *)
+
 %token EOF
 
-%nonassoc IN
+%right IN
 %nonassoc SEMICOLON
 %right OUTPUT
-%nonassoc LET
+%right LET
 %nonassoc IF ELSE WHILE
 %nonassoc UPDATE
 %right HEAD TAIL EMPTY FST SND
@@ -79,26 +82,27 @@ open Signature
 %left  AST DIVIDE
 %nonassoc INT FLOAT BOOL EMPTYLIST VAR LPAREN DEREF
 
-%start <Signature.signature * Expression.exp> prog
+%start <Signature.signature list * Expression.exp> prog
 
 %%
 
 sigma:
-| t=TYPE x=VAR BE c=cases			 { Sig(x.value, c) }
+| t=TYPE x=VAR BE c=cases			 { [(x.value, c)] }
+| s1=sigma t=TYPE x=VAR BE c=cases		 { List.append s1 [(x.value, c)] }
 
 cases:
-| TAG x=CONSTRUCTOR				 { [SConstructor x.value] }
-| TAG x=CONSTRUCTOR OF l=modtypes		 { [Constructor (x.value, l)] }
-| c1=cases TAG x=CONSTRUCTOR OF l=modtypes	 { List.append c1 [Constructor (x.value, l)] }
-| c1=cases TAG x=CONSTRUCTOR 			 { List.append c1 [SConstructor x.value] }
+| TAG x=CONSTRUCTOR				 { [(x.value, [])] }
+| TAG x=CONSTRUCTOR OF l=modtypes		 { [(x.value, l)] }
+| c1=cases TAG x=CONSTRUCTOR OF l=modtypes	 { List.append c1 [(x.value, l)] }
+| c1=cases TAG x=CONSTRUCTOR 			 { List.append c1 [(x.value, [])] }
 
 modtypes:
 | t=types					 { [t] }
 | l=modtypes t=types				 { List.append l [t]  }
 
 prog:
-| e=exp EOF					 { (Sig("", []),  e) }
-| s=sigma e=prog			    	 { (s, (snd e)) }
+| e=exp EOF					 { ([], e) }
+| s=sigma e=prog			    	 { (List.append s (fst e), snd e) }
 | EOF	  			    	    	 { failwith "Empty file" }
 
 exp:
@@ -166,10 +170,12 @@ exp:
   { {value=EIgnore(e1, e2); pos=e1.pos} }
 | t=WHILE e1=exp DO e2=exp END
   { {value=EWhile(e1, e2); pos=t.pos} }
-| x=CONSTRUCTOR a=args
-  { {value=EConstructor(x.value, a); pos=x.pos} }
+| x=CONSTRUCTOR LPAREN a=args RPAREN
+  { {value=EConstructor(x.value, (List.rev a)); pos=x.pos} }
 | x=CONSTRUCTOR
   { {value=EConstructor(x.value, []); pos=x.pos} }
+| t=MATCH e=exp WITH p=patternmatch
+  { {value=EMatch(e, p); pos=t.pos} }
 
 args:
 | e=exp						 { [e] }
@@ -181,7 +187,19 @@ types:
 | TFLOAT			  		 { TFloat }
 | TBOOL		  	   	  		 { TBool }
 | TUNIT						 { TUnit }
-| t1=types OUTPUT t2=types	  		 { TFun(t1, t2) }
+| t1=types OUTPUT t2=types	  		 { TFun (t1, t2) }
 | t1=types AST t2=types				 { TPair(t1, t2) }
 | LSQBRACKET t=types RSQBRACKET			 { TList t }
 | LANGBRACKET t=types RANGBRACKET		 { TRef t }
+| x=VAR	      	      				 { TVariant x.value }
+
+patternmatch:
+| TAG p=pattern OUTPUT e=exp			 { [(p, e)] }
+| pm=patternmatch TAG p=pattern OUTPUT e=exp	 { List.append pm [(p, e)] }
+
+pattern:
+| c=CONSTRUCTOR LPAREN v=variables RPAREN	 { (c.value, v) }
+
+variables:
+| v=VAR						 { [v] }
+| l=variables COMMA v=VAR			 { List.append l [v] }

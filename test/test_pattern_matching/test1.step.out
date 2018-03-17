@@ -1,0 +1,12 @@
+(let x = VInt(3) in match x with
+| VBool(b) -> (if b 1 0)
+| VInt(x) -> (+ x x)
+| VFloat(f) -> (+ f f)
+)
+match VInt(3) with
+| VBool(b) -> (if b 1 0)
+| VInt(x) -> (+ x x)
+| VFloat(f) -> (+ f f)
+
+(+ 3 3)
+6

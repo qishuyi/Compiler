@@ -2,6 +2,7 @@ open Lang
 open Lexer
 open Parser
 open Expression
+open Signature
 
 let is_parse = ref false
 let is_lex   = ref false
@@ -30,8 +31,8 @@ let main () =
   "[" ^ (Lexer.string_of_token_list (List.rev toks)) ^ "]" |> print_endline end
   else
   let ret = Parser.prog Lexer.token lexbuf in
-  let signature = fst ret in let exp = snd ret
-  in if is_parse = ref true then (Signature.string_of_signature signature) ^ (Expression.string_of_exp exp.value) |> print_endline
-  else Lang.typecheck [] exp |> ignore ; Lang.eval exp [] signature !is_step |> ignore
+  let signature_l = fst ret in let exp = snd ret
+  in if is_parse = ref true then (string_of_signature_list signature_l "") ^ (string_of_exp exp.value) |> print_endline
+  else Lang.typecheck [] signature_l exp |> ignore ; Lang.eval exp [] signature_l !is_step |> ignore
   
 let _ = if !Sys.interactive then () else main ()

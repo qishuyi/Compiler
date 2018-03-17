@@ -51,16 +51,36 @@ type expression =
 | EIgnore of exp * exp
 | EWhile of exp * exp
 | EConstructor of string * exp list
+| EMatch of exp * pattern_match_suite
 and exp = { value : expression ; pos : Lexing.position }
+and pattern_match_suite = case list
+and case = pattern * exp
+and pattern = string * (variable list)
 
 type environment = (int * expression) list
+
+let rec string_of_variable_list (l:variable list) (ret:string) : string =
+  let vlist = List.rev l in
+  if List.length vlist = 1 then (List.hd vlist).value ^ ret
+  else (string_of_variable_list (List.tl vlist) "") ^ ", " ^ (List.hd vlist).value ^ ret
+
+let string_of_pattern (p:pattern) : string =
+  (fst p) ^ "(" ^ (string_of_variable_list (snd p) "") ^ ")"
 
 (* Turn the AST into string *)
 let rec string_of_exp (e:expression) : string =
   let rec string_of_exp_list (e:exp list) (ret:string) : string =
-    if List.length e = 0 then ret 
-    else (string_of_exp_list (List.tl e) (string_of_exp (List.hd e).value) ^ ret)
-in
+    if List.length e = 1 then (string_of_exp (List.hd e).value) ^ ret
+    else (string_of_exp_list (List.tl e) ", " ^ (string_of_exp (List.hd e).value) ^ ret)
+  in
+    let string_of_case (c:case) : string =
+    "| " ^ (string_of_pattern (fst c)) ^ " -> " ^ (string_of_exp (snd c).value) ^ "\n"
+    in
+    let rec string_of_pm_suite (pm:pattern_match_suite) (ret:string) : string =
+      let pmlist = List.rev pm in
+      if List.length pmlist = 0 then ret
+      else string_of_pm_suite (List.tl pmlist) (string_of_case (List.hd pmlist)) ^ ret
+  in
 match e with
 | EInt n                            ->  string_of_int(n.value)
   | EAdd(e1, e2)                      ->  "(+ " ^ string_of_exp e1.value ^ " " ^ string_of_exp e2.value ^ ")"
@@ -76,7 +96,7 @@ match e with
   | ELet (x, e1, e2)                  ->  "(let " ^ x.v.value ^ " = " ^ string_of_exp e1.value ^ " in " ^ string_of_exp e2.value ^ ")"
 | EFun (x, e')                      ->  "(fun " ^ x.v.v.value ^ " -> " ^ string_of_exp e'.value ^ ")"
   | EFix (f, x, e')                   ->  "(fix " ^ f.value ^ " " ^ x.v.v.value ^ " -> " ^ string_of_exp e'.value ^ ")"
-| EApply (e1, e2)                   ->  "(" ^ string_of_exp e1.value ^ " " ^ string_of_exp e2.value ^ ")"
+| EApply (e1, e2)                    ->  "(" ^ string_of_exp e1.value ^ " " ^ string_of_exp e2.value ^ ")"
   | EUnit                             -> "()"
 | EPair (e1, e2)                    -> "(" ^ string_of_exp e1.value ^ ", " ^ string_of_exp e2.value ^ ")"
   | EFst e                            -> "(fst " ^ string_of_exp e.value ^ ")"
@@ -92,5 +112,5 @@ match e with
   | EIgnore(e1, e2)                   -> (string_of_exp e1.value) ^ " ; " ^ (string_of_exp e2.value)
 | EPointer n                        -> "Ptr(" ^ (string_of_int n) ^ ")"
   | EWhile(e1, e2)                    -> "(while " ^ (string_of_exp e1.value) ^ " do " ^ (string_of_exp e2.value) ^ " end)"
-| EConstructor (name, elist)        -> name ^ "( " ^ (string_of_exp_list elist "") ^ ")"
-
+| EConstructor (name, elist)        -> name ^ "(" ^ (string_of_exp_list elist "") ^ ")"
+  | EMatch(e, pmlist)                 -> "match " ^ (string_of_exp e.value) ^ " with\n" ^ (string_of_pm_suite pmlist "")

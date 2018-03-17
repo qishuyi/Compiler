@@ -9,6 +9,7 @@ debug: all compiler.cma
 test:
 	./test/test_typecheck/test.sh
 	./test/test_state/test.sh
+	./test/test_pattern_matching/test.sh
 
 %.cma: .FORCE
 	$(OCB) $@
