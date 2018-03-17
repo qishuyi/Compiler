@@ -204,4 +204,6 @@ so that the operators take on the more familiar infix style
   
   ## [7.0.1] - 2018-03-17
   ### Added
-  - Added variants (type declarations) to the language. 
+  - Added variants (type declarations) to the language. User-defined types are now possible.
+  ### Known bugs
+  - After introducing pattern matching, reference tends to fail sometimes.
