@@ -215,4 +215,3 @@ so that the operators take on the more familiar infix style
   - Added variants (type declarations) to the language. User-defined types are now possible.
   ### Known bugs
   - After introducing pattern matching, reference tends to fail sometimes.
->>>>>>> e592fcc5d436a40bd9f081304c9630327858f0a2
