@@ -2,7 +2,7 @@
 
 ref=./test/test_state/test.txt
 file1=./test/test_state/test1.step.out
-temp1=./test/test_typecheck/temp1.test
+temp1=./test/test_state/temp1.test
 while=./test/test_state/test2.txt
 file2=./test/test_state/test2.step.out
 temp2=./test/test_state/temp2.test

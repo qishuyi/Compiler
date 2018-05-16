@@ -1,8 +1,9 @@
-(let x = (ref (> 20 10)) in (x := (<= 20 10)) ; (if !x (- 2 1) (+ -1 1)))
-(let x = Ptr(0) in (x := (<= 20 10)) ; (if !x (- 2 1) (+ -1 1)))
-(Ptr(0) := (<= 20 10)) ; (if !Ptr(0) (- 2 1) (+ -1 1))
-(Ptr(0) := false) ; (if !Ptr(0) (- 2 1) (+ -1 1))
-() ; (if !Ptr(0) (- 2 1) (+ -1 1))
-() ; (if false (- 2 1) (+ -1 1))
-() ; 0
-0
+(let max2 = (fun x -> (fun y -> (if (> x y) x y))) in (let a = 5 in (let b = 2 in ((max2 a) b))))
+(let a = 5 in (let b = 2 in (((fun x -> (fun y -> (if (> x y) x y))) a) b)))
+(let b = 2 in (((fun x -> (fun y -> (if (> x y) x y))) 5) b))
+(((fun x -> (fun y -> (if (> x y) x y))) 5) 2)
+((fun y -> (if (> 5 y) 5 y)) 2)
+(if (> 5 2) 5 2)
+(if true 5 2)
+5
+5

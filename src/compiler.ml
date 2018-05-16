@@ -1,13 +1,24 @@
-open Lang
+open Evaluation
 open Lexer
 open Parser
-open Expression
-open Signature
+open Lang
+open Cil
 
 let is_parse = ref false
 let is_lex   = ref false
 let is_step  = ref false
 let arglist  = ref []
+
+(* Returns a list of variant signatures and a list of function signatures, factored out from the declarations *)
+let factor_declaration (dl:Lang.declaration) : Lang.variant_signature list * Lang.function_signature list =
+  let rec helper (ds:Lang.declaration) (vlist:Lang.variant_signature list) (flist:Lang.function_signature list) : Lang.variant_signature list * Lang.function_signature list =
+    if List.length ds = 0 then (vlist, flist)
+    else begin
+      match List.hd ds with
+      | VSignature v -> helper (List.tl ds) (v :: vlist) flist
+      | FSignature f -> helper (List.tl ds) vlist (f :: flist)
+    end 
+  in helper dl [] []
 
 let main () =
   (* Recognize flags during parsing *)
@@ -30,9 +41,22 @@ let main () =
   let toks = append_list [] lexbuf in
   "[" ^ (Lexer.string_of_token_list (List.rev toks)) ^ "]" |> print_endline end
   else
-  let ret = Parser.prog Lexer.token lexbuf in
-  let signature_l = fst ret in let exp = snd ret
-  in if is_parse = ref true then (string_of_signature_list signature_l "") ^ (string_of_exp exp.value) |> print_endline
-  else Lang.typecheck [] signature_l exp |> ignore ; Lang.eval exp [] signature_l !is_step |> ignore
+    let decllist = Parser.prog Lexer.token lexbuf 
+    in
+    let signatures = factor_declaration decllist
+    in
+    (* If the -parse flag is specified, print out the AST *)
+    if is_parse = ref true then (string_of_declaration decllist) |> print_endline
+    (* Otherwise, evaluate the expression and print out the result.
+     * If the -step flags is specified, print out small-step evaluation. Otherwise, print out the final value.
+     *)
+    else 
+      let type_check (f:Lang.function_signature) : Lang.t = Typecheck.typechecker signatures f
+      in 
+        List.map type_check (snd signatures) |> ignore ;
+      Cil.conv_fns (List.rev (snd signatures)) [] signatures |> Cil.string_of_fns |> print_endline
+      (* let function_info = List.assoc "main" (snd signatures) in
+        Evaluation.eval function_info.body [] signatures !is_step |> ignore *)
+      
   
 let _ = if !Sys.interactive then () else main ()
