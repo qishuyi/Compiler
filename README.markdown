@@ -1,5 +1,21 @@
 # OcamlCompiler by Shuyi Qi
 Building a compiler with Ocaml  
+## Source-to-source translation to a C-like language
+My bash script failed to work so I put the four test files in the root directory and to run the test, do:
+```
+make
+```
+and then do:
+```
+./compiler.native (test file name)
+```
+to see the value evaluated from the compiler that I wrote. To see the small-step evaluation, add the ```-step``` flag at the end of the command-line arguments.
+To see source-to-source translation to the C-like language, pass in ```-cil``` flag at the end of the command-line arguments:
+```
+./compiler.native (test file name) -cil > temp.c
+```
+This command will output the result of the translation to the ```temp.c``` file. We can then compile it using gcc and run the program. Both ways should produce the same results. To see what language features this source-to-source translation supports, see the changelog below.
+
 ## Getting Started
 These instructions will get you a copy of the project up and running on your local machine for development and testing purposes.  
 ### Prerequisites
@@ -200,4 +216,14 @@ so that the operators take on the more familiar infix style
   ```
   e ::= ... | while e1 do e2 end
   ```
-  In our language, a finished ```while``` loop evaluates to the unit value and only updates the value each time it goes inside the loop. 
+  In our language, a finished ```while``` loop evaluates to the unit value and only updates the value each time it goes inside the loop.
+  
+## [7.0.1] - 2018-05-18
+### Changed
+- Changed the source language from expression-based to declaration-based. 
+- There are two types of declarations: *variant declaration* and *function declaration*.
+- The function calls do not depend on the order of their declarations. The compiler will read in all the declarations at once and find the function named ```main``` to execute.
+- Added function signatures to typechecking and separated the typecheckers into two: one for typechecking declarations and the other for expressions so that we can typecheck when translating.
+### Added
+- Source to source translation to a C-like language.
+- Added statements to the target language and completed conversion. The resulting code can be compiled using ```gcc```.
