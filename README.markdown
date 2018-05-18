@@ -227,3 +227,16 @@ so that the operators take on the more familiar infix style
 ### Added
 - Source to source translation to a C-like language.
 - Added statements to the target language and completed conversion. The resulting code can be compiled using ```gcc```.
+- The conversion supports:
+   ```
+  e ::= (e) | n | b | e1 (+) e2 | if e1 then e2 else e3
+    | x | let x : t = e1 in e2
+    | e1 (e list)
+    | ()
+    | (e1, e2) | fst e | snd e
+    | ref e | e1 := e2 | !e | e1 ; e2
+    | while e1 do e2 end
+
+    t ::= int | bool | unit | <t>
+  ```
+- Note: due to implementation of the pair structure, pairs cannot be returned from a function and will only work within let-bindings because the pair struct is declared inside each function. 
