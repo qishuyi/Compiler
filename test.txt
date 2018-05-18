@@ -1,0 +1,5 @@
+let max (x : int) (y : int) : int =
+    if x > y then x else y ;;
+
+let main : int =
+    (max 2 4) + (max 7 9) ;;

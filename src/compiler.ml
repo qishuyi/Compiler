@@ -7,6 +7,7 @@ open Cil
 let is_parse = ref false
 let is_lex   = ref false
 let is_step  = ref false
+let is_cil = ref false
 let arglist  = ref []
 
 (* Returns a list of variant signatures and a list of function signatures, factored out from the declarations *)
@@ -24,7 +25,8 @@ let main () =
   (* Recognize flags during parsing *)
   let speclist = [("-parse", Arg.Set is_parse, "prints the stream of tokens.");
   ("-lex", Arg.Set is_lex, "prints the abstract syntax tree");
-  ("-step", Arg.Set is_step, "show small step evaluation")]
+  ("-step", Arg.Set is_step, "show small step evaluation");
+  ("-cil", Arg.Set is_cil, "source-to-source translation to a C-like language")]
     in let usage_msg = "Usage: my-project [flags] [args]"
   in Arg.parse speclist (fun anon -> arglist :=  anon :: !arglist) usage_msg;
 
@@ -47,16 +49,17 @@ let main () =
     in
     (* If the -parse flag is specified, print out the AST *)
     if is_parse = ref true then (string_of_declaration decllist) |> print_endline
-    (* Otherwise, evaluate the expression and print out the result.
-     * If the -step flags is specified, print out small-step evaluation. Otherwise, print out the final value.
-     *)
     else 
       let type_check (f:Lang.function_signature) : Lang.t = Typecheck.typechecker signatures f
       in 
-        List.map type_check (snd signatures) |> ignore ;
-      Cil.conv_fns (List.rev (snd signatures)) [] signatures |> Cil.string_of_fns |> print_endline
-      (* let function_info = List.assoc "main" (snd signatures) in
-        Evaluation.eval function_info.body [] signatures !is_step |> ignore *)
+        if is_cil = ref true then 
+        begin
+          List.map type_check (snd signatures) |> ignore;
+          Cil.conv_fns (List.rev (snd signatures)) [] signatures |> Cil.string_of_fns |> print_endline
+        end
+        else
+        let function_info = List.assoc "main" (snd signatures) in
+          Evaluation.eval function_info.body [] signatures !is_step |> string_of_value |> print_endline 
       
   
 let _ = if !Sys.interactive then () else main ()

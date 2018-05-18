@@ -1,0 +1,11 @@
+let min (x : int) (y : int) (z : int) : int =
+    if x < y then
+       (if x < z then x else z)
+    else
+       (if y < z then y else z) ;;
+
+let main : int =
+    let x : int = 1 in
+    let y : int = 2 in
+    let z : int = 3 in
+    min (x) (y) (z) ;;

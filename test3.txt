@@ -1,0 +1,11 @@
+let max (x : int) (y : int) : int =
+    if x > y then x else y ;;
+
+let min (x : int) (y : int) : int =
+    if x < y then x else y ;;
+
+let main : int =
+    let a : int = max 3 4 in
+    let b : int = min 10 9 in
+    let p : (int * int) = (a, b) in
+    (fst p) + (snd p) ;;

@@ -240,7 +240,7 @@ let eval (e:exp) (env:environment) (signatures:variant_signature list * function
   let rec eval_H (e:exp) (envrmt:environment) : value =
     let v = step e envrmt signatures b
     in
-    if (is_value (snd v)) then begin print_endline (string_of_exp {value=(snd v);pos=e.pos}) ; (exp_to_value (snd v)) end
+    if (is_value (snd v)) then begin (exp_to_value (snd v)) end
     else eval_H {value=(snd v); pos=e.pos} (fst v)
 in eval_H e env
 

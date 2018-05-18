@@ -46,43 +46,26 @@ type exp =
 | EPair of exp * exp
 | EFst of exp
 | ESnd of exp
-| EEmptylist of t
-| ECons of exp * exp
-| EHead of exp
-| ETail of exp
-| EEmpty of exp
 | ERef of exp
 | EUpdate of exp * exp
 | EDeref of exp
-| EPointer of address
+| EAddress of id
 | EIgnore of exp * exp
 | EWhile of exp * exp
-| EConstructor of id * exp list
-| EMatch of exp * case list
 and case = pattern * exp
 
 (*********************************************************************** Functions for values *******************************************************************)
-(* Definition of type value *)
-type value =
-| VInt of int
-| VFloat of float
-| VBool of bool
-| VUnit
-| VPair of value * value
-| VEmptylist of t
-| VCons of value * value
-| VRef of value
-| VConstructor of string * (value list)
-
 type stmt =
 | SInit of id * t * exp
+| SMalloc of id * t
 | SDecl of id * t
-| SAssign of id * exp
-| SWhile of exp * exp
+| SAssign of exp * exp
+| SWhile of exp * stmt list
 | SIf of exp * stmt list * stmt list
 | SRet of exp
 | SPrint of exp
 | SStruct of id * (id * t) list
+
 
 (********* function declaration **********)
 
@@ -139,6 +122,7 @@ let rec string_of_exp (e:exp) : string =
   | EInt n  -> string_of_int n
   | EBool b -> string_of_bool b
   | EFloat f -> string_of_float f
+  | EUnit -> ""
   | EVar x  -> x
   | EBinop (op, e1, e2) ->
       Printf.sprintf "(%s %s %s)"
@@ -156,58 +140,67 @@ let rec string_of_exp (e:exp) : string =
   	  Printf.sprintf "%s.fst" (string_of_exp e')
   | ESnd e' ->
   	  Printf.sprintf "%s.snd" (string_of_exp e')
+  | ERef e' -> 
+  	  string_of_exp e'
+  | EUpdate (e1, e2) ->
+  	  Printf.sprintf "%s = %s" (string_of_exp e1) (string_of_exp e2)
+  | EDeref e' ->
+  	  Printf.sprintf "*%s" (string_of_exp e')
+  | EAddress x ->
+  	  Printf.sprintf "&%s" x
+  | _ -> failwith "string_of_exp: unimplemented"
 
 let rec string_of_typ (typ:t) : string =
   match typ with
   | TInt  -> "int"
   | TBool -> "bool"
   | TFloat -> "float"
-  | TUnit -> "void"
+  | TUnit -> ""
   | TPair(t1, t2) -> 
   		Printf.sprintf "struct pair_%s_%s" (string_of_typ t1) (string_of_typ t2)
-  | TList t' -> 
-  		Printf.sprintf "List<%s>" (string_of_typ t')
   | TRef t' -> 
   		Printf.sprintf "%s*" (string_of_typ t')
-  | TVariant s -> s
+  | _ -> failwith "List and variant are not valid types in the C-like language"
 
 let rec string_of_stmt (s:stmt) : string =
   match s with
   | SInit (x, t, e) ->
-      Printf.sprintf "%s %s = %s;" (string_of_typ t) x (string_of_exp e)
-  | SAssign (x, e) ->
-      Printf.sprintf "%s = %s;" x (string_of_exp e)
+      Printf.sprintf "\t%s %s = %s;" (string_of_typ t) x (string_of_exp e)
+  | SMalloc (x, t) ->
+  	  Printf.sprintf "\t%s* %s = (%s*)malloc(sizeof(%s));" (string_of_typ t) x (string_of_typ t) (string_of_typ t)
+  | SAssign (e1, e2) ->
+      Printf.sprintf "\t%s = %s;" (string_of_exp e1) (string_of_exp e2)
   | SDecl (x, t) ->
-  	  Printf.sprintf "%s %s;" (string_of_typ t) x
-  | SWhile (e1, e2) ->
-  	  Printf.sprintf "while (%s) { %s }"
-  	  	(string_of_exp e1) (string_of_exp e2)
+  	  Printf.sprintf "\t%s %s;" (string_of_typ t) x
+  | SWhile (e1, b) ->
+  	  Printf.sprintf "\twhile (%s) {\t%s \n\t}"
+  	  	(string_of_exp e1) (string_of_blk b)
   | SIf (e, b1, b2) ->
-      Printf.sprintf "if (%s) { %s } else { %s }"
+      Printf.sprintf "\tif (%s) {\t%s\n\t}else {\n\t%s \n\t}"
         (string_of_exp e) (string_of_blk b1) (string_of_blk b2)
   | SRet e ->
-      Printf.sprintf "return %s;" (string_of_exp e)
+      Printf.sprintf "\treturn %s;" (string_of_exp e)
   | SPrint e ->
-      Printf.sprintf "printf(\"%%d\\n\", %s);" (string_of_exp e)
+      Printf.sprintf "\tprintf(\"%%d\\n\", %s);" (string_of_exp e)
   | SStruct (x, l) ->
-  	  Printf.sprintf "struct %s { %s };" x (String.concat " " (List.map (fun (s, t) -> Printf.sprintf "%s %s;" (string_of_typ t) s) l))
+  	  Printf.sprintf "struct %s {\n\t%s\n};" x (String.concat " " (List.map (fun (s, t) -> Printf.sprintf "%s %s;" (string_of_typ t) s) l))
 
 and string_of_blk (ss:stmt list) : string =
   List.fold_left
-    (fun ret s -> Printf.sprintf "%s %s" ret (string_of_stmt s))
+    (fun ret s -> Printf.sprintf "%s\n%s" ret (string_of_stmt s))
     "" ss
 
 let string_of_arg (a:arg) : string =
   Printf.sprintf "%s %s" (string_of_typ a.typ) a.name
 
 let string_of_fn (f:fn_nfo) : string =
-  Printf.sprintf "%s %s(%s) { %s }\n"
+  Printf.sprintf "%s %s(%s) { %s \n  }\n"
     (string_of_typ f.ret_typ) f.name
     (List.map string_of_arg f.args |> sep_str_of_list ",")
     (string_of_blk f.body)
 
 let string_of_fns (p:function_signature list) : string =
-  "#include <stdio.h>\n#include <stdbool.h>\n" ^ 
+  "#include <stdio.h>\n#include <stdbool.h>\n#include <stdlib.h>\n" ^ 
   begin
     List.fold_left
       (fun ret (_, f) -> Printf.sprintf "%s %s" ret (string_of_fn f))
@@ -262,21 +255,20 @@ let rec conv_exp (e:S.exp) (env:(string * S.t) list) (signatures:S.variant_signa
       let (x3, ss3, s3) = factor_subexp e3 env signatures in
       let ret           = fresh_name () in
       let typ 			= conv_typ (Typecheck.typecheck env signatures e2) in
-      let ss2'          = ss2 @ [s2] @ [SAssign (ret, EVar x2)] in
-      let ss3'          = ss3 @ [s3] @ [SAssign (ret, EVar x3)] in
+      let ss2'          = ss2 @ [s2] @ [SAssign (EVar ret, EVar x2)] in
+      let ss3'          = ss3 @ [s3] @ [SAssign (EVar ret, EVar x3)] in
       (EVar ret, ss1 @ [s1] @ [SDecl (ret, typ)] @ [SIf (EVar x1, ss2', ss3')])
   | S.ELet (x, t, e1, e2) ->
-      let (e1', ss1)    = conv_exp e1 env signatures in
-      let (x1, ss, s1)  = factor_subexp e1 [] signatures in
-      let (x2, ss2, s2) = factor_subexp e2 [(x.value, t)] signatures in
+      let (e1', ss1)    = conv_exp e1 env signatures in 
+      let (x2, ss2, s2) = factor_subexp e2 ([(x.value, t)] @ env) signatures in
       let typ 			= conv_typ (Typecheck.typecheck env signatures e1) in
-      (EVar x2, ss1 @ [SInit (x1, typ, e1')] @ ss2 @ [s2])
+      (EVar x2, ss1 @ [SInit (x.value, typ, e1')] @ ss2 @ [s2])
   | S.EApply (f, es) -> 
       let (es, ss) = factor_subexps es env signatures in (EApply (f.value, es), ss)
   | S.EIgnore (e1, e2) ->
       let (x1, ss1, s1) = factor_subexp e1 env signatures in
       let (x2, ss2, s2) = factor_subexp e2 env signatures in
-      (EVar x2, ss1 @ ss2 @ [s1; s2])
+      (EVar x2, ss1 @ ss2)
   | S.EPair (e1, e2) -> 
   	  let (x1, ss1, s1) = factor_subexp e1 env signatures in
   	  let (x2, ss2, s2) = factor_subexp e2 env signatures in
@@ -288,32 +280,59 @@ let rec conv_exp (e:S.exp) (env:(string * S.t) list) (signatures:S.variant_signa
   	  (EVar ret, [SStruct (pair_name, pair_fields)] @ ss1 @ ss2 @ [s1; s2] @ [SInit (ret, TPair(typ1, typ1), EPair(EVar x1, EVar x2))])
   | S.EFst e' -> 
   	  let (x, ss, s)	= factor_subexp e' env signatures in
-  	  let (e'', ss')	= conv_exp e' env signatures in
   	  let ret 			= fresh_name() in
   	  let typ 			= Typecheck.typecheck env signatures e' in
   	  begin
   	  	match typ with
   	  	| TPair (t1, t2) -> (EVar ret, ss @ [s] @ [SInit (ret, conv_typ t1, EFst (EVar x))])
-  	  	| _              -> failwith "Syntax error"
+  	  	| _              -> failwith "Type error"
   	  end
-  | S.ESnd e' -> failwith "conv_exp: unimplemented (S.ESnd)"
-  | S.EEmptylist t -> failwith "conv_exp: unimplemented (S.EEmptylist)"
-  | S.ECons(e1, e2) -> failwith "conv_exp: unimplemented (S.ECons)"
-  | S.EHead e' -> failwith "conv_exp: unimplemented (S.EHead)"
-  | S.ETail e' -> failwith "conv_exp: unimplemented (S.ETail)"
-  | S.EEmpty e' -> failwith "conv_exp: unimplemented (S.EEmpty)"
-  | S.ERef _    -> failwith "conv_exp: unimplemented (S.ERef)"
-  | S.EDeref _  -> failwith "conv_exp: unimplemented (S.EDeref)"
-  | S.EUpdate _ -> failwith "conv_exp: unimplemented (S.EAssign)"
-  | S.EPointer _ -> failwith "conv_exp: unimplemented (S.EPointer)"
-  | S.EWhile _  -> failwith "conv_exp: unimplemented (S.EWhile)"
+  | S.ESnd e' -> 
+  	  let (x, ss, s)	= factor_subexp e' env signatures in
+  	  let ret 			= fresh_name() in
+  	  let typ 			= Typecheck.typecheck env signatures e' in
+  	  begin
+  	  	match typ with
+  	  	| TPair (t1, t2) -> (EVar ret, ss @ [s] @ [SInit (ret, conv_typ t2, ESnd (EVar x))])
+  	  	| _              -> failwith "Type error"
+  	  end
+  | S.ERef e' -> 
+  	  let (x, ss, s)	= factor_subexp e' env signatures in
+  	  let ret 			= fresh_name() in
+  	  let typ 			= Typecheck.typecheck env signatures e' in
+	  (EVar ret, ss @ [s] @ [SMalloc(ret, conv_typ typ)] @ [SAssign (EVar ret, EAddress x)])
+  | S.EDeref e' -> 
+  	  let (x, ss, s)	= factor_subexp e' env signatures in
+   	  let ret 			= fresh_name() in
+  	  let typ 			= Typecheck.typecheck env signatures e' in
+  	  begin
+  	  	match typ with
+  	  	| TRef t' 		-> (EVar ret, ss @ [s] @ [SInit (ret, conv_typ t', EDeref (EVar x))])
+  	  	| _ 			-> failwith "Type error"
+  	  end
+  | S.EUpdate (e1, e2) ->
+  	  let (x1, ss1, s1) = factor_subexp e1 env signatures in
+  	  let (e1', ss1')	= conv_exp e1 env signatures in
+  	  let (e2', ss2)	= conv_exp e2 env signatures in
+  	  let ret 			= fresh_name() in
+  	  (EVar ret, ss1 @ ss2 @ [s1] @ [SAssign(EDeref e1', e2')])
+  | S.EWhile (e1, e2)  ->
+  	  let (x1, ss1, s1) = factor_subexp e1 env signatures in
+      let (x2, ss2, s2) = factor_subexp e2 env signatures in
+      let (e1', ss') 	= conv_exp e1 env signatures in
+      let ret           = fresh_name () in
+      let typ 			= conv_typ (Typecheck.typecheck env signatures e2) in
+      let s 			= SAssign (EVar x1, e1') in
+      (EVar ret, ss1 @ [s1] @ [SWhile (EVar x1, ss2 @ ss' @ [s])])
+  | _ -> failwith "Not an available type in the C-like language"
+
 
 and factor_subexp (e:S.exp) (env:(string * S.t) list) (signatures:S.variant_signature list * S.function_signature list) : id * stmt list * stmt =
-  let x = ref (fresh_name ()) in
+  let x = fresh_name () in
   let (e', ss) = conv_exp e env signatures in
   let typ = Typecheck.typecheck env signatures e in
-  let s = SInit (!x, conv_typ typ, e') in
-  (!x, ss, s)
+  let s = SInit (x, conv_typ typ, e') in 
+  	(x, ss, s)
 
 and factor_subexps (es:S.exp list) (env:(string * S.t) list) (signatures:S.variant_signature list * S.function_signature list) : exp list * stmt list =
   List.fold_left (fun (es, ss) e ->
